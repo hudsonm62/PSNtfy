@@ -182,18 +182,6 @@ function Send-NtfyPush {
         [switch]$UnifiedPush = $false
     )
 
-    function Write-TerminatingError {
-        param (
-            [Exception]$Exception,
-            [string]$Message,
-            [System.Management.Automation.ErrorCategory]$Category,
-            [string]$ErrorId
-        )
-        $ErrorRecord = New-Object System.Management.Automation.ErrorRecord($Exception,$ErrorId,$Category,$null)
-        $ErrorRecord.ErrorDetails = $Message
-        $PSCmdlet.ThrowTerminatingError($ErrorRecord)
-    }
-
     try {
         $FullUri = [Uri]::new($NtfyEndpoint, $Topic)
     } catch {
