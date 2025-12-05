@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 
 - Fixed incorrect `http` method formats.
 
+[v0.2.1]: https://github.com/hudsonm62/PSNtfy/releases/tag/v0.2.1
+
 ## [v0.2.0] - 2025-12-06
 
 ### Added
