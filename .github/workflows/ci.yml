@@ -1,0 +1,146 @@
+name: CI
+on: [push, workflow_dispatch]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⚙️ Checkout code
+        id: checkout
+        uses: actions/checkout@v6
+
+      - name: ✨ Markdownlint CLi2 Action
+        if: steps.checkout.outcome == 'success' && !cancelled()
+        uses: DavidAnson/markdownlint-cli2-action@v21
+        with:
+          globs: "**/*.md"
+          config: .markdownlint-cli2.jsonc
+
+      - name: ✨ Prettier Action
+        if: steps.checkout.outcome == 'success' && !cancelled()
+        uses: creyD/prettier_action@v4.6
+        with:
+          prettier_options: --config .prettierrc --check .
+          dry: true
+
+      - name: ✨ PSScriptAnalyzer Action
+        if: steps.checkout.outcome == 'success' && !cancelled()
+        uses: microsoft/psscriptanalyzer-action@v1.1
+        with:
+          path: ./src/PSNtfy # module root
+          recurse: true
+          settings: ./PSScriptAnalyzerSettings.psd1
+          enableExit: true
+
+  test-pwsh:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: ⚙️ Checkout code
+        uses: actions/checkout@v6
+
+      - name: 🌌 Get Run Metadata
+        id: setup-meta
+        uses: ./.github/actions/get-metadata
+
+      - name: 🥓 Set PS7 Cache Path
+        id: ps-cache
+        run: |
+          if ($IsWindows) {
+            echo "CACHE_PATH=$(Join-Path $HOME 'Documents\PowerShell\Modules')" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "CACHE_PATH=$HOME/.local/share/powershell/Modules" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: 🥓 Cache PowerShell modules
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.ps-cache.outputs.CACHE_PATH }}
+          key: ${{ runner.os }}-pwsh-${{ hashFiles('**/requirements.psd1') }}
+          restore-keys: |
+            ${{ runner.os }}-pwsh-
+
+      - name: 🔻 Bootstrap
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module -Name PSake -Scope CurrentUser -Confirm:$false
+          Install-Module -Name Pester -MaximumVersion 5.7.1 -Confirm:$false
+
+      - name: 🧪 Run Pester
+        id: tests
+        run: Invoke-PSake Test-CI -NoLogo
+
+      - name: 🥨 Upload coverage report
+        if: steps.tests.outcome != 'skipped' && !cancelled()
+        uses: actions/upload-artifact@v5
+        with:
+          name: code-coverage_${{ runner.os }}-pwsh-${{ steps.setup-meta.outputs.short-sha }}-${{ steps.setup-meta.outputs.timestamp }}
+          path: coverage.xml
+
+      - name: 🥨 Upload test results
+        if: steps.tests.outcome != 'skipped' && !cancelled()
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-results_${{ runner.os }}-pwsh-${{ steps.setup-meta.outputs.short-sha }}-${{ steps.setup-meta.outputs.timestamp }}
+          path: testResults.xml
+
+  test-powershell:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: powershell
+
+    steps:
+      - name: ⚙️ Checkout code
+        uses: actions/checkout@v6
+
+      - name: 🌌 Get Run Metadata
+        id: setup-meta
+        uses: ./.github/actions/get-metadata
+
+      - name: 🥓 Set PS5 Cache Path
+        id: ps-cache
+        run: |
+          echo "CACHE_PATH=$(Join-Path $HOME 'Documents\WindowsPowerShell\Modules')" >> $env:GITHUB_OUTPUT
+
+      - name: 🥓 Cache PowerShell modules
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.ps-cache.outputs.CACHE_PATH }}
+          key: ${{ runner.os }}-powershell-${{ hashFiles('**/requirements.psd1') }}
+          restore-keys: |
+            ${{ runner.os }}-powershell-
+
+      - name: 🔻 Bootstrap
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module -Name PSake -Scope CurrentUser -Confirm:$false
+          Install-Module -Name Pester -MaximumVersion 5.7.1 -Confirm:$false
+
+      - name: 🧪 Run Pester
+        id: tests
+        run: Invoke-PSake Test-CI -NoLogo
+
+      - name: 🥨 Upload coverage report
+        if: steps.tests.outcome != 'skipped' && !cancelled()
+        uses: actions/upload-artifact@v5
+        with:
+          name: code-coverage_ps5-${{ steps.setup-meta.outputs.short-sha }}-${{ steps.setup-meta.outputs.timestamp }}
+          path: coverage.xml
+
+      - name: 🥨 Upload test results
+        if: steps.tests.outcome != 'skipped' && !cancelled()
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-results_ps5-${{ steps.setup-meta.outputs.short-sha }}-${{ steps.setup-meta.outputs.timestamp }}
+          path: testResults.xml
