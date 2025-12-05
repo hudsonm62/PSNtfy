@@ -69,11 +69,12 @@
 .PARAMETER AccessToken
     Access token for Authentication.
     Must be a SecureString that can be decrypted to plain text with ConvertFrom-SecureString.
-
     Prefers AccessToken over Credential if both are provided.
 
 .PARAMETER TokenType
-    Type of AccessToken to use for Authentication. Can only be "Bearer" or "Basic".
+    Type of AccessToken to use for Authentication. Can only be "Bearer" or "Basic" - Defaults to "Bearer".
+    Ignored if Credential is used for authentication, as Credential uses Basic authentication regardless.
+    https://swagger.io/docs/specification/v3_0/authentication/bearer-authentication/
 
 .PARAMETER NoCaching
     Whether to disable caching for this notification.
@@ -212,6 +213,9 @@ function Send-NtfyPush {
                     $Headers["Authorization"] = "Basic $(ConvertFrom-SecureString -AsPlainText $AccessToken)"
                 }
             }
+        }
+        if($Credential) {
+            Write-Warning "Both AccessToken and Credential were provided. Only AccessToken will be used for authentication."
         }
     } elseif($Credential) {
         $EncodedAuth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$($Credential.UserName):$($Credential.GetNetworkCredential().Password)"))
