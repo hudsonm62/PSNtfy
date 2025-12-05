@@ -6,7 +6,7 @@
 
 Cross-platform PowerShell module to assist with building and sending notifications to Ntfy instances.
 
-[![GitHub Tag](https://img.shields.io/github/v/tag/hudsonm62/PSNtfy?label=latest)](https://github.com/hudsonm62/PSNtfy/releases) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hudsonm62/PSNtfy/ci.yml?label=%F0%9F%A7%AA%20%20CI)](https://github.com/hudsonm62/PSNtfy/actions/workflows/ci.yml) [![GitHub top language](https://img.shields.io/github/languages/top/hudsonm62/PSNtfy?link=%20)](https://github.com/hudsonm62/PSNtfy/search?l=powershell)
+[![GitHub Tag](https://img.shields.io/github/v/tag/hudsonm62/PSNtfy?label=latest)](https://github.com/hudsonm62/PSNtfy/releases) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hudsonm62/PSNtfy/ci.yml?label=%F0%9F%A7%AA%20%20CI)](https://github.com/hudsonm62/PSNtfy/actions/workflows/ci.yml) ![Codecov](https://img.shields.io/codecov/c/github/hudsonm62/PSNtfy) [![GitHub top language](https://img.shields.io/github/languages/top/hudsonm62/PSNtfy?link=%20)](https://github.com/hudsonm62/PSNtfy/search?l=powershell)
 
 </div>
 
@@ -41,9 +41,35 @@ From there you can import the module and start sending notifications:
 
 ```powershell
 Import-Module PSNtfy
-Send-PSNtfyNotification -NtfyEndpoint 'https://ntfy.sh' -Topic 'test' `
+Send-NtfyPush -NtfyEndpoint 'https://ntfy.sh' -Topic 'test' `
         -Title "Hello, Ntfy!"
 ```
+
+- Run `Get-Help PSNtfy` for available commands, parameters & examples.
+
+### 🔑 Credentials
+
+Credentials can be provided in 2 ways:
+
+1. Username and Password via a [PSCredential](https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.pscredential).
+2. Using a Token (Bearer or Basic Auth) via plaintext [SecureString](https://learn.microsoft.com/en-us/dotnet/api/system.security.securestring).
+
+```powershell
+# User/Pass (Basic Auth)
+Send-NtfyPush -Credential (Get-Credential)
+
+# By Token (Bearer or Basic Auth)
+$tk = ConvertTo-SecureString 'tk_***' -AsPlainText -Force
+Send-NtfyPush -TokenType Bearer -AccessToken $tk
+Send-NtfyPush -TokenType Basic  -AccessToken $tk
+```
+
+The function will handle formatting the Headers correctly for you depending on your PowerShell version (due to the differences in `Invoke-RestMethod` & `ConvertFrom-SecureString` from PS6+). How we handle it under the hood closely resembles the examples in the Ntfy documentation so you don't have to worry about it.
+
+- [Ntfy Docs | Authentication](https://docs.ntfy.sh/publish/#authentication)
+
+> [!CAUTION]
+> Don't store your passwords & tokens directly in your scripts. Instead, use alternative methods such as [Secret Management](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.secretmanagement/) or [CredentialManager](https://www.powershellgallery.com/packages/CredentialManager/).
 
 ### 🧩 Actions
 

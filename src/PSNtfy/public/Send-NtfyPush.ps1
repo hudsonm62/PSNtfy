@@ -211,7 +211,9 @@ function Send-NtfyPush {
     )
 
     try {
-        $FullUri = [Uri]::new($NtfyEndpoint, $Topic)
+        $builder = [System.UriBuilder]$NtfyEndpoint
+        $builder.Path = (Join-Path -Path $builder.Path -ChildPath $Topic)
+        $FullUri = $builder.Uri.AbsoluteUri
     } catch {
         Write-TerminatingError -Exception $_.Exception `
             -Message "Failed to construct a properly formed Endpoint URI." `
@@ -225,51 +227,14 @@ function Send-NtfyPush {
         Uri    = $FullUri
     }
 
-    # build out access payload
+    # build out access payload from Save-NtfyAuthentication
     if($AccessToken) {
-        try {
-            if($PSVersionTable.PSVersion.Major -le 5){
-                # PS5- Logic
-                $Token = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($AccessToken))
-                switch ($TokenType) {
-                    "Bearer" {
-                        $Headers["Authorization"] = "Bearer $Token"
-                    }
-                    "Basic" {
-                        $Headers["Authorization"] = "Basic $Token"
-                    }
-                }
-            } else {
-                # PS6+ Logic
-                switch ($TokenType) {
-                    "Bearer" {
-                        $Payload["Token"] = $AccessToken # should remain a SecureString
-                        $Payload["Authentication"] = "Bearer"
-                    }
-                    "Basic" {
-                        $Headers["Authorization"] = "Basic $(ConvertFrom-SecureString -AsPlainText $AccessToken)"
-                    }
-                }
-            }
-        } catch {
-            Write-TerminatingError -Exception $_.Exception `
-                -Message "Failed to process the -AccessToken for authentication." `
-                -Category ParserError `
-                -ErrorId "Ntfy.AccessTokenError"
-        }
+        Save-NtfyAuthentication -Payload $Payload -Headers $Headers -AccessToken $AccessToken -TokenType $TokenType -ErrorAction Stop
         if($Credential) {
             Write-Warning "Both AccessToken and Credential were provided. Only AccessToken will be used for authentication."
         }
     } elseif($Credential) {
-        try {
-            $EncodedAuth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$($Credential.UserName):$($Credential.GetNetworkCredential().Password)"))
-            $Headers["Authorization"] = "Basic $EncodedAuth"
-        } catch {
-            Write-TerminatingError -Exception $_.Exception `
-                -Message "Failed to process the -Credential for authentication." `
-                -Category ParserError `
-                -ErrorId "Ntfy.CredentialError"
-        }
+        Save-NtfyAuthentication -Payload $Payload -Headers $Headers -Credential $Credential -ErrorAction Stop
     }
 
     # build out notification

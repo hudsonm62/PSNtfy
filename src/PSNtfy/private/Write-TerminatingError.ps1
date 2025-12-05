@@ -14,5 +14,5 @@ function Write-TerminatingError {
     )
     $ErrorRecord = New-Object System.Management.Automation.ErrorRecord($Exception,$ErrorId,$Category,$null)
     $ErrorRecord.ErrorDetails = $Message
-    $PSCmdlet.ThrowTerminatingError($ErrorRecord)
+    throw $ErrorRecord
 }

@@ -89,7 +89,54 @@ Describe "Write-TerminatingError" {
                         -Category OperationStopped `
                         -ErrorId "Test.TerminatingError"
                 }
-            } | Should -Throw -ExpectedMessage "Some Major Issue" -ErrorId "Test.TerminatingError,Write-TerminatingError"
+            } | Should -Throw -ExpectedMessage "Some Major Issue" -ErrorId "Test.TerminatingError"
+        }
+    }
+}
+Describe "Save-NtfyAuthentication" {
+    InModuleScope PSNtfy {
+        BeforeAll {
+            $MockCredString = 'FakePassword'
+            $MockSecureString = ConvertTo-SecureString $MockCredString -AsPlainText -Force
+        }
+        BeforeEach {
+            $Payload = @{}
+            $Headers = @{}
+            $PayloadHeaders = @{
+                Payload = $Payload
+                Headers = $Headers
+            }
+        }
+        Context "Using AccessToken" {
+            It "should use Bearer token by default" {
+                Save-NtfyAuthentication -AccessToken $MockSecureString @PayloadHeaders
+
+                if($PSVersionTable.PSVersion.Major -le 5){
+                    $Headers["Authorization"] | Should -Be "Bearer $MockCredString"
+                } else {
+                    $Payload["Token"] | Should -Be $MockSecureString
+                    $Payload["Authentication"] | Should -Be "Bearer"
+                }
+            }
+            It "should specify Basic token when requested" {
+                Save-NtfyAuthentication -AccessToken $MockSecureString -TokenType "Basic" @PayloadHeaders
+                $Headers["Authorization"] | Should -Be "Basic $MockCredString"
+            }
+            It "should throw if SecureString is empty" {
+                { Save-NtfyAuthentication -AccessToken (ConvertTo-SecureString "" -AsPlainText -Force) @PayloadHeaders } | Should -Throw
+            }
+        }
+        Context "Using Credential" {
+            It "should use Basic Auth Credential" {
+                $MockUser = "user"
+                $MockCredential = New-Object System.Management.Automation.PSCredential ($MockUser, $MockSecureString)
+                Save-NtfyAuthentication -Credential $MockCredential @PayloadHeaders
+                $EncodedCreds = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$MockUser" + ':' + "$MockCredString"))
+                $Headers["Authorization"] | Should -Be "Basic $EncodedCreds"
+            }
+            It "should throw if Credential is invalid" {
+                { Save-NtfyAuthentication -Credential $null @PayloadHeaders } | Should -Throw
+            }
         }
     }
 }
@@ -227,16 +274,19 @@ Describe "Send-NtfyPush" {
             Mock 'Invoke-RestMethod' { } -ModuleName PSNtfy
         }
         It "should construct proper URI with valid endpoint and topic" {
-            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "test"
-            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter { $Uri -eq "$NtfyTestEndpoint/test" }
+            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test"
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter { $Uri -eq "$NtfyTestEndpoint/ps-test" }
         }
         It "should construct proper URI with trailing slash in endpoint" {
-            Send-NtfyPush -NtfyEndpoint "$NtfyTestEndpoint/" -Topic "test"
-            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter { $Uri -eq "$NtfyTestEndpoint/test" }
+            Send-NtfyPush -NtfyEndpoint "$NtfyTestEndpoint/" -Topic "ps-test"
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter { $Uri -eq "$NtfyTestEndpoint/ps-test" }
         }
         It "should construct proper URI with leading slash in topic" {
-            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "/test"
-            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter { $Uri -eq "$NtfyTestEndpoint/test" }
+            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "/ps-test"
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter { $Uri -eq "$NtfyTestEndpoint/ps-test" }
+        }
+        It "should throw on invalid URI" {
+            { Send-NtfyPush -NtfyEndpoint "ht!tp://invalid-uri" -Topic "ps-test" } | Should -Throw
         }
     }
     Context "Authentication Handling" {
@@ -261,23 +311,23 @@ Describe "Send-NtfyPush" {
             }
         }
         It "should use Basic token when AccessToken is provided" {
-            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "test" -AccessToken $MockSecureString -TokenType "Basic"
+            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -AccessToken $MockSecureString -TokenType "Basic"
             Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter {
                 $Headers.ContainsKey("Authorization") -and
                 $Headers["Authorization"] -eq "Basic $MockCredString"
             }
         }
         It "should use Bearer token when AccessToken is provided" {
-            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "test" -AccessToken $MockSecureString -TokenType "Bearer"
+            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -AccessToken $MockSecureString -TokenType "Bearer"
             Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter $TokenParamFilter
         }
         It "should use AccessToken even if Credentials are provided" {
             Mock Write-Warning { } -ModuleName PSNtfy
-            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "test" -AccessToken $MockSecureString -Credential $MockCredential -TokenType "Bearer"
+            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -AccessToken $MockSecureString -Credential $MockCredential -TokenType "Bearer"
             Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter $TokenParamFilter
         }
         It "should handle Basic Auth Credential" {
-            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "test" -Credential $MockCredential
+            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -Credential $MockCredential
             $EncodedCreds = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$MockUser" + ':' + "$MockCredString"))
             Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter {
                 $Headers.ContainsKey("Authorization") -and
@@ -291,15 +341,15 @@ Describe "Send-NtfyPush" {
             # Note: This test may fail if there are network issues or if ntfy.sh is down
 
             # Arrange
-            $Actions = ConvertTo-NtfyAction -View -Label "GitHub" -Url "https://github.com"
+            $Actions = ConvertTo-NtfyAction -View -Label "GitHub" -Url 'https://github.com/hudsonm62/PSNtfy'
             $payload = @{
                 NtfyEndpoint = $NtfyTestEndpoint
                 Title   = "PSNtfy Test Notification"
                 Body = "This is a **test notification** sent from Pester!"
-                Topic   = "test"
+                Topic   = "ps-test"
                 Actions = $Actions
                 Priority = 'urgent'
-                Click   = 'https://github.com'
+                Click   = 'https://github.com/hudsonm62/PSNtfy'
                 Markdown = $true
                 Tags    = @('test_tube', 'testing-code')
             }
@@ -310,11 +360,11 @@ Describe "Send-NtfyPush" {
             # Assert
             $result | Should -Not -Be $null
             $result | Should -Not -Contain 'error'
-            $result.topic | Should -Be 'test'
+            $result.topic | Should -Be 'ps-test'
             $ActionsResult = $result.actions[0]
             $ActionsResult.action | Should -Be "view"
             $ActionsResult.label | Should -Be "GitHub"
-            $ActionsResult.url | Should -Be "https://github.com"
+            $ActionsResult.url | Should -Be 'https://github.com/hudsonm62/PSNtfy'
         }
     }
 }
