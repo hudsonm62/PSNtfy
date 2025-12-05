@@ -6,7 +6,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog] and this project adheres to [Semantic Versioning](http://semver.org/).
 
+[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.2.0...dev
+
 ## [Unreleased]
+
+## [v0.2.0] - 2025-12-06
 
 ### Added
 
@@ -22,6 +26,8 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 - Renamed some internal functions for clarity.
 - Pester: Using `ps-test` to avoid flooding common public topic.
 - Renovate: Use `dev` branch as 'base'.
+
+[v0.2.0]: https://github.com/hudsonm62/PSNtfy/releases/tag/v0.2.0
 
 ## [v0.1.1] - 2025-12-05
 
@@ -66,7 +72,6 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 [v0.0.0]: https://github.com/hudsonm62/PSNtfy/releases/tag/v0.0.0
 -->
 
-[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.1.1...dev
 [Keep a Changelog]: http://keepachangelog.com/
 
 <!-- markdownlint-enable MD024 -->
