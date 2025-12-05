@@ -19,7 +19,7 @@ Author = 'Hudson M.'
 CompanyName = ''
 
 # Copyright statement for this module
-Copyright = '(c) Hudson M. All rights reserved.'
+Copyright = '(c) Hudson M. Apache License 2.0'
 
 # Description of the functionality provided by this module
 # Description = ''
