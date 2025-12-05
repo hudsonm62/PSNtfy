@@ -4,7 +4,7 @@
 RootModule = 'PSNtfy.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.1'
+ModuleVersion = '0.1.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -87,7 +87,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('ntfy', 'notification', 'api', 'helper', 'automation', 'powershell', 'pwsh')
 
         # A URL to the license for this module.
         LicenseUri = 'https://github.com/hudsonm62/PSNtfy/blob/master/LICENSE'
@@ -99,7 +99,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'https://github.com/hudsonm62/PSNtfy/blob/master/CHANGELOG.md'
 
         # Prerelease string of this module
         # Prerelease = ''
