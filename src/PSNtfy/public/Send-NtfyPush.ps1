@@ -182,18 +182,25 @@ function Send-NtfyPush {
         [switch]$UnifiedPush = $false
     )
 
+    function Write-TerminatingError {
+        param (
+            [Exception]$Exception,
+            [string]$Message,
+            [System.Management.Automation.ErrorCategory]$Category,
+            [string]$ErrorId
+        )
+        $ErrorRecord = New-Object System.Management.Automation.ErrorRecord($Exception,$ErrorId,$Category,$null)
+        $ErrorRecord.ErrorDetails = $Message
+        $PSCmdlet.ThrowTerminatingError($ErrorRecord)
+    }
+
     try {
         $FullUri = [Uri]::new($NtfyEndpoint, $Topic)
     } catch {
-        $message = "Failed to construct a properly formed Endpoint URI."
-        $ErrorRecord = New-Object System.Management.Automation.ErrorRecord(
-            $_.Exception,
-            "EndpointURIError",
-            [System.Management.Automation.ErrorCategory]::InvalidData,
-            $null
-        )
-        $ErrorRecord.ErrorDetails = $message
-        $PSCmdlet.ThrowTerminatingError($ErrorRecord)
+        Write-TerminatingError -Exception $_.Exception `
+            -Message "Failed to construct a properly formed Endpoint URI." `
+            -Category InvalidData `
+            -ErrorId "EndpointURIError"
     }
 
     $Headers = @{}
