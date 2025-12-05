@@ -122,6 +122,9 @@ Describe "Save-NtfyAuthentication" {
                 Save-NtfyAuthentication -AccessToken $MockSecureString -TokenType "Basic" @PayloadHeaders
                 $Headers["Authorization"] | Should -Be "Basic $MockCredString"
             }
+            It "should throw if SecureString is empty" {
+                { Save-NtfyAuthentication -AccessToken (ConvertTo-SecureString "" -AsPlainText -Force) @PayloadHeaders } | Should -Throw
+            }
         }
         Context "Using Credential" {
             It "should use Basic Auth Credential" {
@@ -130,6 +133,9 @@ Describe "Save-NtfyAuthentication" {
                 Save-NtfyAuthentication -Credential $MockCredential @PayloadHeaders
                 $EncodedCreds = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$MockUser" + ':' + "$MockCredString"))
                 $Headers["Authorization"] | Should -Be "Basic $EncodedCreds"
+            }
+            It "should throw if Credential is invalid" {
+                { Save-NtfyAuthentication -Credential $null @PayloadHeaders } | Should -Throw
             }
         }
     }
@@ -278,6 +284,9 @@ Describe "Send-NtfyPush" {
         It "should construct proper URI with leading slash in topic" {
             Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "/ps-test"
             Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter { $Uri -eq "$NtfyTestEndpoint/ps-test" }
+        }
+        It "should throw on invalid URI" {
+            { Send-NtfyPush -NtfyEndpoint "ht!tp://invalid-uri" -Topic "ps-test" } | Should -Throw
         }
     }
     Context "Authentication Handling" {
