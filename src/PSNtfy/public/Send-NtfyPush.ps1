@@ -109,7 +109,7 @@
     Invoke-Ntfy @Ntfy
 #>
 function Send-NtfyPush {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Default')]
     param (
         [Parameter(Mandatory = $true)]
         [Uri]$NtfyEndpoint,
