@@ -22,7 +22,7 @@ CompanyName = ''
 Copyright = '(c) Hudson M. Apache License 2.0'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'PowerShell module to assist with building and sending notifications to Ntfy instances.'
 
 # Minimum version of the PowerShell engine required by this module
 PowerShellVersion = '5.1'
