@@ -1,6 +1,12 @@
 <#
 .SYNOPSIS
     Helper to convert a Ntfy Action to an Object, usually for JSON processing.
+.DESCRIPTION
+    Converts a Ntfy "simple format" action string into a Hashtable for easier or further JSON processing.
+.PARAMETER ActionString
+    Simple format Ntfy Action string to convert.
+.LINK
+    https://docs.ntfy.sh/publish/#action-buttons
 #>
 function ConvertFrom-NtfyAction {
     [OutputType([Hashtable])]
@@ -9,19 +15,92 @@ function ConvertFrom-NtfyAction {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [string]$ActionString
     )
+    begin {
+        function ConvertFrom-ClearStringToBool {
+            param ([string]$InputString)
+            return [bool]::Parse($InputString -replace 'clear=')
+        }
+        function Get-FromKeyValueString {
+            param ([string]$InputString, [string]$Prefix)
+            $KeyValue = $InputString -replace "^$Prefix\.", ''
+            $name, $value = $KeyValue -split '=', 2
+            return @($name, $value)
+        }
+    }
     process {
         $Keys = ($ActionString -split ',').Trim()
-        $result = @{
-            Action = $Keys[0]
-            Label  = $Keys[1]
-            URL    = $Keys[2]
+
+        # Determine action type (first element - view/broadcast/http)
+        $ActionType = $Keys[0]
+        $Hashtable = @{
+            ActionType = $ActionType
+            Label = $Keys[1]
+        } # Label is the only common/required field
+
+        try {
+            switch ($ActionType) {
+                'view' {
+                    # view is simple, only Label, Url, Clear
+                    $Hashtable.Label = $Keys[1]
+                    $Hashtable.Url = $Keys[2]
+                    if($Keys[3]) { $Hashtable.Clear = ConvertFrom-ClearStringToBool -InputString $Keys[3] }
+                }
+                'broadcast' {
+                    # broadcast, Label, optional Intent, optional Extras.*, Clear
+                    # Process parts (if any)
+                    if ($Keys.Count -gt 2) { <# NOTE- Keys[2] is extras onwards #>
+                        foreach ($part in $Keys[2..($Keys.Count - 1)]) {
+                            # Process Each "key part"
+                            if ($part -like 'extras.*=*') {
+                                # extras.one=2  ->  Extras["one"] = "2"
+                                $name, $value = Get-FromKeyValueString -InputString $part -Prefix 'extras'
+                                if (-not $Hashtable.Extras) { $Hashtable.Extras = @{} }
+                                $Hashtable.Extras[$name] = $value
+                            } elseif ($part -like 'clear=*') {
+                                # clear=true/false
+                                $Hashtable.Clear = ConvertFrom-ClearStringToBool -InputString $part
+                            } else {
+                                # probably Intent
+                                $Hashtable.Intent = $part
+                            }
+                        }
+                    }
+                }
+                'http' {
+                    # http, Label, Url, optional Method, optional Headers.*, optional Body, optional Clear
+                    $Hashtable.Url = $Keys[2]
+                    if ($Keys.Count -gt 3) { <# NOTE- Keys[3] is Method onwards #>
+                        foreach ($part in $Keys[3..($Keys.Count - 1)]) {
+                            # Process Each "key part"
+                            if ($part -like 'headers.*=*') {
+                                # headers.one=2  ->  Headers["one"] = "2"
+                                $name, $value = Get-FromKeyValueString -InputString $part -Prefix 'headers'
+                                if (-not $Hashtable.Headers) { $Hashtable.Headers = @{} }
+                                $Hashtable.Headers[$name] = $value
+                            } elseif ($part -like 'clear=*') {
+                                # clear=true/false
+                                $Hashtable.Clear = ConvertFrom-ClearStringToBool -InputString $part
+                            } elseif ($part -match '^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)$') {
+                                # Method
+                                $Hashtable.Method = $part
+                            } else {
+                                # probably Body
+                                $Hashtable.Body = $part
+                            }
+                        }
+                    }
+                }
+                default {
+                    throw "Unknown ActionType '$ActionType' in ActionString."
+                }
+            }
+        } catch {
+            Write-TerminatingError -Exception $_.Exception `
+                -Message "Failed to parse ActionString into Hashtable." `
+                -Category ParserError `
+                -ErrorId "Ntfy.ActionStringParseError"
         }
 
-        if($null -ne $Keys[3]){
-            [bool]$ToBool = [bool]::Parse($Keys[3] -replace 'clear=') # Convert to bool type
-            $result.Add('Clear', $ToBool)
-        }
-
-        return $result
+        return $Hashtable
     }
 }

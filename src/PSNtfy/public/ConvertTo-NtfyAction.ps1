@@ -2,34 +2,115 @@
 .SYNOPSIS
     Helper to build a Ntfy Action string
 
-.EXAMPLE
-    $1 = ConvertTo-NtfyAction @splat1
-    $2 = ConvertTo-NtfyAction @splat2
-    Send-NtfyPush @PushSplat -Actions $1,$2
-
-.EXAMPLE
-    $1 = ConvertTo-NtfyAction @splat1
-    $2 = ConvertTo-NtfyAction @splat2
-    Send-NtfyPush @PushSplat -Actions ($1,$2 -join ';')
+.DESCRIPTION
+    Helps build a Ntfy "simple format" action string for use with Send-NtfyPush or directly with ntfy.sh.
+.PARAMETER View
+    Specifies a "view" action type.
+.PARAMETER Broadcast
+    Specifies a "broadcast" action type.
+.PARAMETER Http
+    Specifies an "http" action type.
+.PARAMETER Label
+    The label for the action button.
+.PARAMETER Url
+    The URL to open (for view and http actions).
+.PARAMETER Intent
+    Android Intent name (for broadcast actions).
+    "io.heckel.ntfy.USER_ACTION" as Ntfy.sh default.
+.PARAMETER Extras
+    Extras to include with the broadcast (for broadcast actions).
+    Use the format "key=value" as per ntfy.sh documentation. Will be prefixed with "extras." automatically so only provide the key and value.
+.PARAMETER Method
+    The HTTP method to use (for http actions). Defaults to POST as per ntfy.sh documentation.
+.PARAMETER Headers
+    Headers to include with the HTTP request (for http actions).
+    Use the format "key=value" as per ntfy.sh documentation. Will be prefixed with "headers." automatically so only provide the key and value.
+.PARAMETER Body
+    The body to include with the HTTP request (for http actions).
+.PARAMETER Clear
+    Whether to clear the notification when the action is taken. Defaults to $false and always included in the output regardless of value.
+.LINK
+    https://docs.ntfy.sh/publish/#action-buttons
 #>
 function ConvertTo-NtfyAction {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'parameter sets for switches')]
     [OutputType([string])]
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'View')]
     param (
-        [Parameter(Mandatory = $true)]
-        [ValidateSet("view","broadcast","http")]
-        [string]$Action,
+        # Action type switches
+        [Parameter(Mandatory = $true, ParameterSetName = 'View')]
+        [switch]$View,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Broadcast')]
+        [switch]$Broadcast,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'Http')]
+        [switch]$Http,
+
+        # Common
+        [Parameter(Mandatory = $true, ParameterSetName = 'View')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Broadcast')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Http')]
         [string]$Label,
 
-        [Parameter(Mandatory = $true)]
-        [string]$URL,
+        # view + http require URL
+        [Parameter(Mandatory = $true, ParameterSetName = 'View')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Http')]
+        [string]$Url,
 
-        [Parameter()]
+        # broadcast-only
+        [Parameter(ParameterSetName = 'Broadcast')]
+        [string]$Intent,
+
+        [Parameter(ParameterSetName = 'Broadcast')]
+        [string[]]$Extras,
+
+        # http-only
+        [Parameter(ParameterSetName = 'Http')]
+        [ValidateSet('GET','POST','PUT','DELETE','PATCH','HEAD','OPTIONS')]
+        [string]$Method,
+
+        [Parameter(ParameterSetName = 'Http')]
+        [string[]]$Headers,
+
+        [Parameter(ParameterSetName = 'Http')]
+        [string]$Body,
+
+        # common optional
+        [Parameter(ParameterSetName = 'View')]
+        [Parameter(ParameterSetName = 'Broadcast')]
+        [Parameter(ParameterSetName = 'Http')]
         [switch]$Clear = $false
     )
+    try {
+        $ClearString = "clear=$($Clear.ToString().ToLower())"
+        $return = switch ($PSCmdlet.ParameterSetName) {
+            'View' {
+                "view, $Label, $Url, $ClearString"
+            }
+            'Broadcast' {
+                $string = "broadcast, $Label"
+                if ($Intent) { $string += ", $Intent" }
+                if ($Extras) { $string += ", extras." + ($Extras -join ', extras.') }
+                "$string, $ClearString"
+            }
+            'Http' {
+                $string = "http, $Label, $Url"
+                if ($Method) { $string += ", $Method" }
+                if ($Headers) { $string += ", headers." + ($Headers -join ', headers.') }
+                if ($Body) { $string += ", $Body" }
+                "$string, $ClearString"
+            }
+            default {
+                throw "Unknown or missing Action."
+            }
+        }
+    } catch {
+        Write-TerminatingError -Exception $_.Exception `
+            -Message "Failed to construct Ntfy Action string." `
+            -Category InvalidOperation `
+            -ErrorId "Ntfy.ActionStringConstructionError"
+    }
 
-    # make string
-    return "$Action, $Label, $URL, clear=$($Clear.ToString().ToLower())"
+    return $return
 }
