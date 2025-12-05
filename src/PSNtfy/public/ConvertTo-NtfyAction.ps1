@@ -105,7 +105,7 @@ function ConvertTo-NtfyAction {
             }
             'Http' {
                 $string = "http, $Label, $Url"
-                if ($Method) { $string += ", $Method" }
+                if ($Method) { $string += ", method=$($Method.ToUpperInvariant())" }
                 if ($Headers) { $string += ", headers." + ($Headers -join ', headers.') }
                 if ($Body) { $string += ", $Body" }
                 "$string, $ClearString"

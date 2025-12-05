@@ -6,9 +6,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog] and this project adheres to [Semantic Versioning](http://semver.org/).
 
-[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.2.0...dev
+[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.2.1...dev
 
 ## [Unreleased]
+
+## [v0.2.1] - 2025-12-06
 
 ### Fixed
 

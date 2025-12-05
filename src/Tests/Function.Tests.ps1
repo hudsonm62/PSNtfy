@@ -176,7 +176,7 @@ Describe "ConvertTo-NtfyAction" {
                 -Headers @("Authorization=Bearer FakeToken", "Content-Type=application/json") `
                 -Body '{"key":"value"}' -Clear:$true
 
-            $result | Should -Be 'http, Post Data, https://example.com/api, POST, headers.Authorization=Bearer FakeToken, headers.Content-Type=application/json, {"key":"value"}, clear=true'
+            $result | Should -Be 'http, Post Data, https://example.com/api, method=POST, headers.Authorization=Bearer FakeToken, headers.Content-Type=application/json, {"key":"value"}, clear=true'
         }
     }
 }
@@ -235,7 +235,7 @@ Describe "ConvertFrom-NtfyAction" {
             $result.Clear | Should -Be $false
         }
         It "should parse an http action" {
-            $ActionString = 'http, Post Data, https://example.com/api, POST, headers.Authorization=Bearer FakeToken, headers.Content-Type=application/json, {"key":"value"}, clear=true'
+            $ActionString = 'http, Post Data, https://example.com/api, method=POST, headers.Authorization=Bearer FakeToken, headers.Content-Type=application/json, {"key":"value"}, clear=true'
             $result = ConvertFrom-NtfyAction -Action $ActionString
 
             $result.ActionType | Should -Be "Http"
@@ -254,11 +254,11 @@ Describe "ConvertFrom-NtfyAction" {
                 { ConvertFrom-NtfyAction -Action $ActionString } | Should -Throw
             }
             It "should throw on malformed body type" {
-                $ActionString = 'http, Post Data, https://example.com/api, POST, body1, body2, body3,and4'
+                $ActionString = 'http, Post Data, https://example.com/api, method=POST, body1, body2, body3,and4'
                 { ConvertFrom-NtfyAction -Action $ActionString } | Should -Throw
             }
             It "should throw on multiple method parts" {
-                $ActionString = 'http, Post Data, https://example.com/api, POST, GET'
+                $ActionString = 'http, Post Data, https://example.com/api, method=POST, method=GET'
                 { ConvertFrom-NtfyAction -Action $ActionString } | Should -Throw
             }
         }

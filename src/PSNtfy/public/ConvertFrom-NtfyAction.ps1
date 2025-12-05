@@ -84,12 +84,16 @@ function ConvertFrom-NtfyAction {
                             } elseif ($part -like 'clear=*') {
                                 # clear=true/false
                                 $Hashtable.Clear = Convert-ClearStringToBool -In $part
-                            } elseif ($part -match '^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)$') {
+                            } elseif ($part -like 'method=*') {
                                 # Method
+                                $MethodType = ($part -replace 'method=')
+                                if($MethodType -notmatch '^(get|post|put|delete|patch|head|options)$') {
+                                    throw "Invalid 'HTTP' Method '$MethodType' detected in ActionString."
+                                }
                                 if($Hashtable.Method) {
                                     throw "Multiple method parts detected in ActionString, a potentially malformed string."
                                 }
-                                $Hashtable.Method = $part
+                                $Hashtable.Method = $MethodType
                             } else {
                                 # probably Body
                                 if($Hashtable.Body) {
