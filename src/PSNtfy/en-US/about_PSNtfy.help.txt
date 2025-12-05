@@ -1,0 +1,55 @@
+TOPIC
+    about_PSNtfy
+
+SYNOPSIS
+    PSNtfy is a PowerShell module for sending notifications via the PSNtfy service.
+
+LONG DESCRIPTION
+
+Ntfy is a Go-based notification service that allows users to send
+notifications to their devices using an API. PSNtfy is a PowerShell
+module that provides cmdlets to interact with the Ntfy service, enabling
+users to build and send notifications directly from PowerShell in a
+simple and efficient manner.
+
+PSNtfy supports nearly all the features of the Ntfy service, including
+Authentication, File attachments and more. It is designed to be easy to
+use, making it accessible for both beginners and experienced PowerShell
+users who want to integrate notification capabilities into their scripts
+and workflows quickly without needing to learn complex APIs.
+
+EXAMPLES
+
+    Example 1: Send a basic notification
+
+    PS/> Send-NtfyPush -NtfyEndpoint 'https://ntfy.sh' -Topic "mytopic" `
+             -Body "Hello, Ntfy!"
+
+    This command sends a simple notification with the message "Hello, Ntfy!"
+    to the topic "mytopic".
+
+    Example 2: Send a notification with additional options
+
+    PS/> Send-NtfyPush -NtfyEndpoint 'https://ntfy.sh' -Topic "alerts" `
+        -Priority "high" -Tags @("fire", "server") -Sound "alert" `
+        -Body "Server CPU usage is high!" -Title "Alert on SERVER01"
+
+    This command sends a high-priority notification with tags and a sound
+    to the topic "alerts".
+
+    Example 3: Send a notification to a protected topic with authentication
+    PS/> $Token = ConvertTo-SecureString "tk_***" -AsPlainText -Force
+    PS/> Send-NtfyPush -AccessToken $Token -NtfyEndpoint 'https://ntfy.sh' `
+            -Topic "SecureTopic" -Body "A notification with authentication!"
+
+    This command sends a notification to a protected topic "SecureTopic"
+    using an access token for authentication.
+
+    By default the token uses "Bearer" authentication. You can also use the
+    '-Credential' parameter to supply a PSCredential object for Basic auth if needed.
+
+SEE ALSO
+
+    Get-Help 'Send-NtfyPush' -Full
+    Get-Help 'ConvertTo-NtfyAction' -Full
+    Get-Help 'ConvertFrom-NtfyAction' -Full
