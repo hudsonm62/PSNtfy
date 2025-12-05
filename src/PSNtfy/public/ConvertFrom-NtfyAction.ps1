@@ -9,6 +9,7 @@
     https://docs.ntfy.sh/publish/#action-buttons
 #>
 function ConvertFrom-NtfyAction {
+    [Alias('cfn')]
     [OutputType([Hashtable])]
     [CmdletBinding()]
     param (
@@ -113,3 +114,4 @@ function ConvertFrom-NtfyAction {
         return $Hashtable
     }
 }
+Set-Alias -Name cfn -Value ConvertFrom-NtfyAction

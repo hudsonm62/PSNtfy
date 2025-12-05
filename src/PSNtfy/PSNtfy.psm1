@@ -16,9 +16,11 @@ $private | ForEach-Object { . $_.FullName }
 $classes | ForEach-Object { . $_.FullName }
 
 # Export 'public' functions (w/ aliases if present)
+$aliases = @()
 $public | ForEach-Object {
     $alias = Get-Alias -Definition $_.BaseName -ErrorAction SilentlyContinue
     if ($alias) {
+        $aliases += $alias
         Export-ModuleMember -Function $_.BaseName -Alias $alias
     } else {
         # Export with no alias
@@ -33,8 +35,8 @@ $Manifest = Test-ModuleManifest $ManifestPath -ErrorAction Stop
 $Added = $public | Where-Object {$_.BaseName -notin $Manifest.ExportedFunctions.Keys}
 $Removed = $Manifest.ExportedFunctions.Keys | Where-Object {$_ -notin $public.BaseName}
 
-$aliasesAdded = $aliases | Where-Object {$_ -notin $Manifest.ExportedAliases.Keys}
-$aliasesRemoved = $Manifest.ExportedAliases.Keys | Where-Object {$_ -notin $aliases}
+$aliasesAdded = $aliases | Where-Object {$_.Name -notin $Manifest.ExportedAliases.Keys}
+$aliasesRemoved = $Manifest.ExportedAliases.Keys | Where-Object {$_ -notin $aliases.Name}
 if ($Added -or $Removed -or $aliasesAdded -or $aliasesRemoved) {
     throw "Module manifest ExportedFunctions or ExportedAliases is out of date. Please update:`n Added Functions: $($Added.BaseName -join ', ')`n Removed Functions: $($Removed -join ', ')`n Added Aliases: $($aliasesAdded -join ', ')`n Removed Aliases: $($aliasesRemoved -join ', ')"
 }

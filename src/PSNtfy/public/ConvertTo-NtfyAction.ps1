@@ -42,6 +42,7 @@
 #>
 function ConvertTo-NtfyAction {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'parameter sets for switches')]
+    [Alias('ctn')]
     [OutputType([string])]
     [CmdletBinding(DefaultParameterSetName = 'View')]
     param (
@@ -122,3 +123,4 @@ function ConvertTo-NtfyAction {
 
     return $return
 }
+Set-Alias -Name ctn -Value ConvertTo-NtfyAction

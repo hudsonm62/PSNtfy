@@ -136,6 +136,7 @@
     Send-NtfyPush @Ntfy
 #>
 function Send-NtfyPush {
+    [Alias('Send-Ntfy')][Alias('sdn')]
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     param (
         [Parameter(Mandatory = $true)]
@@ -303,3 +304,5 @@ function Send-NtfyPush {
     # Send Web Request
     Invoke-RestMethod @Payload
 }
+Set-Alias -Name sdn -Value Send-NtfyPush
+Set-Alias -Name Send-Ntfy -Value Send-NtfyPush
