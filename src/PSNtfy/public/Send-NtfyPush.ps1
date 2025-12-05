@@ -211,7 +211,9 @@ function Send-NtfyPush {
     )
 
     try {
-        $FullUri = [Uri]::new($NtfyEndpoint, $Topic)
+        $builder = [System.UriBuilder]$NtfyEndpoint
+        $builder.Path = (Join-Path -Path $builder.Path -ChildPath $Topic)
+        $FullUri = $builder.Uri.AbsoluteUri
     } catch {
         Write-TerminatingError -Exception $_.Exception `
             -Message "Failed to construct a properly formed Endpoint URI." `
