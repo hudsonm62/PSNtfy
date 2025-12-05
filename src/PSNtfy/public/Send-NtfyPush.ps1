@@ -215,7 +215,7 @@ function Send-NtfyPush {
                 # PS6+ Logic
                 switch ($TokenType) {
                     "Bearer" {
-                        $Payload["Token"] = "$AccessToken" # should remain a SecureString
+                        $Payload["Token"] = $AccessToken # should remain a SecureString
                         $Payload["Authentication"] = "Bearer"
                     }
                     "Basic" {
