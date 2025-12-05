@@ -48,6 +48,9 @@
 .PARAMETER AttachByURL
     URL of a file to attach to the notification.
 
+.PARAMETER Filename
+    Overrides the filename of the attached file (when using AttachByPath or AttachByURL).
+
 .PARAMETER Icon
     Icon to display with the notification.
 
@@ -140,11 +143,15 @@ function Send-NtfyPush {
         [Parameter()]
         [string]$Click = $null,
 
-        [Parameter()]
+        [Parameter(ParameterSetName = 'AttachByPath')]
         [string]$AttachByPath = $null,
 
-        [Parameter()]
+        [Parameter(ParameterSetName = 'AttachByURL')]
         [string]$AttachByURL = $null,
+
+        [Parameter(ParameterSetName = 'AttachByURL')]
+        [Parameter(ParameterSetName = 'AttachByPath')]
+        [string]$Filename = $null,
 
         [Parameter()]
         [string]$Icon = $null,
@@ -219,12 +226,12 @@ function Send-NtfyPush {
     Add-ObjectPropSafe -Object $Headers -Key "Click" -Value $Click
     Add-ObjectPropSafe -Object $Headers -Key "Icon" -Value $Icon
     Add-ObjectPropSafe -Object $Headers -Key "Email" -Value $Email
-    Add-ObjectPropSafe -Object $Headers -Key "Attach" -Value $AttachByURL
     Add-ObjectPropSafe -Object $Headers -Key "Call" -Value $Phone
 
     ## file attachment
-    Add-ObjectPropSafe -Object $Headers -Key "Filename" -Value $AttachByPath
+    Add-ObjectPropSafe -Object $Headers -Key "Filename" -Value $Filename
     Add-ObjectPropSafe -Object $Payload -Key "InFile" -Value $AttachByPath
+    Add-ObjectPropSafe -Object $Headers -Key "Attach" -Value $AttachByURL
 
     ## Booleans & Arrays
     if($Actions) { $Headers["Actions"] = ($Actions -join ";") }
