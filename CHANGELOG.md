@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 
 ## [Unreleased]
 
+### Changed
+
+- Changelog 'unreleased' to reference `dev` branch.
+
 ## [v0.1.1] - 2025-12-05
 
 ### Added
@@ -47,11 +51,11 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 ### Fixed
 
 ### Security
-[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.0.0...HEAD
+[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.0.0...dev
 [v0.0.0]: https://github.com/hudsonm62/PSNtfy/releases/tag/v0.0.0
 -->
 
-[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.1.1...dev
 [Keep a Changelog]: http://keepachangelog.com/
 
 <!-- markdownlint-enable MD024 -->
