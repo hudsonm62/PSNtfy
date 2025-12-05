@@ -89,7 +89,7 @@ Describe "Write-TerminatingError" {
                         -Category OperationStopped `
                         -ErrorId "Test.TerminatingError"
                 }
-            } | Should -Throw -ExpectedMessage "Some Major Issue" -ErrorId "Test.TerminatingError,Write-TerminatingError"
+            } | Should -Throw -ExpectedMessage "Some Major Issue" -ErrorId "Test.TerminatingError"
         }
     }
 }
