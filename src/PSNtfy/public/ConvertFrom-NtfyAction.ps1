@@ -61,6 +61,9 @@ function ConvertFrom-NtfyAction {
                                 $Hashtable.Clear = ConvertFrom-ClearStringToBool -InputString $part
                             } else {
                                 # probably Intent
+                                if($Hashtable.Intent) {
+                                    throw "Multiple Intent parts detected in ActionString, a potentially malformed string."
+                                }
                                 $Hashtable.Intent = $part
                             }
                         }
@@ -82,9 +85,15 @@ function ConvertFrom-NtfyAction {
                                 $Hashtable.Clear = ConvertFrom-ClearStringToBool -InputString $part
                             } elseif ($part -match '^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)$') {
                                 # Method
+                                if($Hashtable.Method) {
+                                    throw "Multiple method parts detected in ActionString, a potentially malformed string."
+                                }
                                 $Hashtable.Method = $part
                             } else {
                                 # probably Body
+                                if($Hashtable.Body) {
+                                    throw "Multiple body parts detected in ActionString, a potentially malformed string."
+                                }
                                 $Hashtable.Body = $part
                             }
                         }
@@ -96,7 +105,7 @@ function ConvertFrom-NtfyAction {
             }
         } catch {
             Write-TerminatingError -Exception $_.Exception `
-                -Message "Failed to parse ActionString into Hashtable." `
+                -Message "Failed to parse ActionString." `
                 -Category ParserError `
                 -ErrorId "Ntfy.ActionStringParseError"
         }

@@ -5,6 +5,7 @@
     https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.cmdlet.throwterminatingerror
 #>
 function Write-TerminatingError {
+    [CmdletBinding()]
     param (
         [Exception]$Exception,
         [string]$Message,
