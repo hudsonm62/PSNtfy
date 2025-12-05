@@ -250,7 +250,7 @@ Describe "ConvertFrom-NtfyAction" {
 
         Context "malformed http actions" {
             It "should throw on malformed method type" {
-                $ActionString = 'http, Post Data, https://example.com/api, INVALIDMETHOD, headers.Authorization=Bearer FakeToken, headers.Content-Type=application/json, {"key":"value"}, clear=true'
+                $ActionString = 'http, Post Data, https://example.com/api, method=INVALIDMETHOD, headers.Authorization=Bearer FakeToken, headers.Content-Type=application/json, {"key":"value"}, clear=true'
                 { ConvertFrom-NtfyAction -Action $ActionString } | Should -Throw
             }
             It "should throw on malformed body type" {
