@@ -17,6 +17,10 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
     - `ConvertTo-NtfyAction`: `ctn`
     - `ConvertFrom-NtfyAction`: `cfn`
 
+### Fixed
+
+- Issue with changed Alias checking on module import.
+
 [v0.1.1]: https://github.com/hudsonm62/PSNtfy/releases/tag/v0.1.1
 
 ## [v0.1.0] - 2025-12-05
