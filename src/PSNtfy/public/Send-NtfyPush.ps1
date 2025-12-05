@@ -241,5 +241,5 @@ function Send-NtfyPush {
     }
 
     # Send Web Request
-    Invoke-RestMethod @Payload -PassThru
+    Invoke-RestMethod @Payload
 }
