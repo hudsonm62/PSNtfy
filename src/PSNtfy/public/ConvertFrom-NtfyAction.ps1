@@ -17,13 +17,13 @@ function ConvertFrom-NtfyAction {
         [string]$ActionString
     )
     begin {
-        function ConvertFrom-ClearStringToBool {
-            param ([string]$InputString)
-            return [bool]::Parse($InputString -replace 'clear=')
+        function Convert-ClearStringToBool {
+            param ([string]$In)
+            return [bool]::Parse($In -replace 'clear=')
         }
-        function Get-FromKeyValueString {
-            param ([string]$InputString, [string]$Prefix)
-            $KeyValue = $InputString -replace "^$Prefix\.", ''
+        function Get-KeyValueString {
+            param ([string]$In, [string]$Prefix)
+            $KeyValue = $In -replace "^$Prefix\.", ''
             $name, $value = $KeyValue -split '=', 2
             return @($name, $value)
         }
@@ -33,10 +33,10 @@ function ConvertFrom-NtfyAction {
 
         # Determine action type (first element - view/broadcast/http)
         $ActionType = $Keys[0]
-        $Hashtable = @{
-            ActionType = $ActionType
-            Label = $Keys[1]
-        } # Label is the only common/required field
+        $Hashtable = @{}
+
+        Add-ObjectPropSafe -Object $Hashtable -Key 'ActionType' -Value $ActionType
+        Add-ObjectPropSafe -Object $Hashtable -Key 'Label' -Value $Keys[1] # Label is the only common/required field
 
         try {
             switch ($ActionType) {
@@ -44,7 +44,7 @@ function ConvertFrom-NtfyAction {
                     # view is simple, only Label, Url, Clear
                     $Hashtable.Label = $Keys[1]
                     $Hashtable.Url = $Keys[2]
-                    if($Keys[3]) { $Hashtable.Clear = ConvertFrom-ClearStringToBool -InputString $Keys[3] }
+                    if($Keys[3]) { $Hashtable.Clear = Convert-ClearStringToBool -In $Keys[3] }
                 }
                 'broadcast' {
                     # broadcast, Label, optional Intent, optional Extras.*, Clear
@@ -54,12 +54,12 @@ function ConvertFrom-NtfyAction {
                             # Process Each "key part"
                             if ($part -like 'extras.*=*') {
                                 # extras.one=2  ->  Extras["one"] = "2"
-                                $name, $value = Get-FromKeyValueString -InputString $part -Prefix 'extras'
+                                $name, $value = Get-KeyValueString -In $part -Prefix 'extras'
                                 if (-not $Hashtable.Extras) { $Hashtable.Extras = @{} }
-                                $Hashtable.Extras[$name] = $value
+                                Add-ObjectPropSafe -Object $Hashtable.Extras -Key $name -Value $value
                             } elseif ($part -like 'clear=*') {
                                 # clear=true/false
-                                $Hashtable.Clear = ConvertFrom-ClearStringToBool -InputString $part
+                                $Hashtable.Clear = Convert-ClearStringToBool -In $part
                             } else {
                                 # probably Intent
                                 if($Hashtable.Intent) {
@@ -78,12 +78,12 @@ function ConvertFrom-NtfyAction {
                             # Process Each "key part"
                             if ($part -like 'headers.*=*') {
                                 # headers.one=2  ->  Headers["one"] = "2"
-                                $name, $value = Get-FromKeyValueString -InputString $part -Prefix 'headers'
+                                $name, $value = Get-KeyValueString -In $part -Prefix 'headers'
                                 if (-not $Hashtable.Headers) { $Hashtable.Headers = @{} }
-                                $Hashtable.Headers[$name] = $value
+                                Add-ObjectPropSafe -Object $Hashtable.Headers -Key $name -Value $value
                             } elseif ($part -like 'clear=*') {
                                 # clear=true/false
-                                $Hashtable.Clear = ConvertFrom-ClearStringToBool -InputString $part
+                                $Hashtable.Clear = Convert-ClearStringToBool -In $part
                             } elseif ($part -match '^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)$') {
                                 # Method
                                 if($Hashtable.Method) {
