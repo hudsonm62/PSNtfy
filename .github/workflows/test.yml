@@ -6,7 +6,6 @@ on:
       - "psakefile.ps1"
   workflow_dispatch:
 
-
 defaults:
   run:
     shell: pwsh
