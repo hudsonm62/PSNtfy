@@ -1,0 +1,29 @@
+{
+    "name": "${localWorkspaceFolderBasename}",
+    "dockerFile": "Dockerfile",
+    "postCreateCommand": {
+        "git-safe": "git config --global --add safe.directory ${containerWorkspaceFolder}"
+    },
+
+    // Take ownership of files
+    "postStartCommand": "sudo chown -R \"$(id -u):$(id -g)\" $PWD",
+
+    // Use non-root user
+    "containerUser": "vscode",
+
+    // Setup Container Environment
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.powershell",
+                "esbenp.prettier-vscode",
+                "redhat.vscode-yaml",
+                "davidanson.vscode-markdownlint",
+                "gruntfuggly.todo-tree"
+            ]
+        },
+        "codespaces": {
+            "openFiles": ["README.md"]
+        }
+    }
+}
