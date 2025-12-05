@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed incorrect `http` method formats.
+
 ## [v0.2.0] - 2025-12-06
 
 ### Added
