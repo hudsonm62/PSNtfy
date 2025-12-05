@@ -8,9 +8,16 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 
 ## [Unreleased]
 
+### Added
+
+- `about_PSNtfy` help topic.
+
 ### Changed
 
 - Changelog 'unreleased' to reference `dev` branch.
+- Using `Add-ObjectPropSafe` more, where applicable.
+- Renamed some internal functions for clarity.
+- Pester: Using `ps-test` to avoid flooding common public topic.
 
 ## [v0.1.1] - 2025-12-05
 
