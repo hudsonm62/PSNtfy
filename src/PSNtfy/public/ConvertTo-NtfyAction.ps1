@@ -31,6 +31,14 @@
     Whether to clear the notification when the action is taken. Defaults to $false and always included in the output regardless of value.
 .LINK
     https://docs.ntfy.sh/publish/#action-buttons
+.EXAMPLE
+    ConvertTo-NtfyAction -View -Label "Open Website" -Url "https://example.com" -Clear
+
+    Produces the string: "view, Open Website, https://example.com, clear=true"
+.EXAMPLE
+    ConvertTo-NtfyAction -Http -Label "Send Data" -Url "https://api.example.com/endpoint" -Method "POST" -Headers "Some=Value","Another=Header" -Body '{"data":"value"}'
+
+    Produces the string: "http, Send Data, https://api.example.com/endpoint, POST, headers.Some=Value, headers.Another=Header, {"data":"value"}, clear=false"
 #>
 function ConvertTo-NtfyAction {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'parameter sets for switches')]

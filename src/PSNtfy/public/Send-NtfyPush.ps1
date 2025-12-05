@@ -3,7 +3,10 @@
     Sends a push notification to the desired ntfy server.
 
 .DESCRIPTION
-    Builds out a request to send a push notification to the desired ntfy server with the provided parameters. Supports every single parameter that ntfy supports.
+    Builds out a request to send a push notification to the desired ntfy server with the provided parameters. Supports nearly every single parameter that ntfy supports.
+
+.LINK
+    https://github.com/hudsonm62/PSNtfy
 
 .LINK
     https://docs.ntfy.sh
@@ -99,6 +102,7 @@
         Topic = 'test'
         Phone = '+61412345678'
     }
+    Send-NtfyPush @Ntfy
 
 .EXAMPLE
     $Ntfy = @{
@@ -106,7 +110,30 @@
         Topic = 'test'
         Tags  = 'skull', 'cool-tag'
     }
-    Invoke-Ntfy @Ntfy
+    Send-NtfyPush @Ntfy
+
+.EXAMPLE
+    $Ntfy = @{
+        NtfyEndpoint = 'https://ntfy.sh'
+        Topic = 'test'
+        AccessToken = (ConvertTo-SecureString '' -AsPlainText -Force)
+    }
+    Send-NtfyPush @Ntfy
+.EXAMPLE
+    $Ntfy = @{
+        NtfyEndpoint = 'https://ntfy.sh'
+        Topic = 'test'
+        AttachByPath = 'path/to/File.txt'
+        Filename = 'Cool.txt'
+    }
+    Send-NtfyPush @Ntfy
+.EXAMPLE
+    $Ntfy = @{
+        NtfyEndpoint = 'https://ntfy.sh'
+        Topic = 'test'
+        AttachByURL = 'https://example.com/image.png'
+    }
+    Send-NtfyPush @Ntfy
 #>
 function Send-NtfyPush {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
