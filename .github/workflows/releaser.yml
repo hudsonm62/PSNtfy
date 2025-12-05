@@ -111,7 +111,7 @@ jobs:
         env:
           PSGALLERY_KEY: ${{ secrets.PSGALLERY_KEY }}
 
-      - name: 🔔 Ntfy Deployment Success
+      - name: 🔔 Ntfy Publish Success
         if: steps.publish.outcome == 'success'
         shell: pwsh
         env:
@@ -121,7 +121,7 @@ jobs:
           # Send notification to ntfy instance
           $NtfyHeaders = @{
               Actions = "view, Open GitHub, https://github.com/hudsonm62/PSNtfy; view, Open PSGallery, https://www.powershellgallery.com/packages/PSNtfy/${{ needs.GitHub.outputs.version }}"
-              Title = "Website Deployment Successful!"
+              Title = "PSGallery Publish Successful!"
               Tags = "package"
               Icon = "https://raw.githubusercontent.com/PowerShell/PowerShell/refs/heads/master/assets/Square150x150Logo.png"
           }
