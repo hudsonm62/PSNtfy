@@ -200,7 +200,7 @@ function Send-NtfyPush {
         Write-TerminatingError -Exception $_.Exception `
             -Message "Failed to construct a properly formed Endpoint URI." `
             -Category InvalidData `
-            -ErrorId "EndpointURIError"
+            -ErrorId "Ntfy.EndpointURIError"
     }
 
     $Headers = @{}
@@ -211,35 +211,49 @@ function Send-NtfyPush {
 
     # build out access payload
     if($AccessToken) {
-        if($PSVersionTable.PSVersion.Major -le 5){
-            # PS5- Logic
-            $Token = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($AccessToken))
-            switch ($TokenType) {
-                "Bearer" {
-                    $Headers["Authorization"] = "Bearer $Token"
+        try {
+            if($PSVersionTable.PSVersion.Major -le 5){
+                # PS5- Logic
+                $Token = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($AccessToken))
+                switch ($TokenType) {
+                    "Bearer" {
+                        $Headers["Authorization"] = "Bearer $Token"
+                    }
+                    "Basic" {
+                        $Headers["Authorization"] = "Basic $Token"
+                    }
                 }
-                "Basic" {
-                    $Headers["Authorization"] = "Basic $Token"
+            } else {
+                # PS6+ Logic
+                switch ($TokenType) {
+                    "Bearer" {
+                        $Payload["Token"] = "$AccessToken" # should remain a SecureString
+                        $Payload["Authentication"] = "Bearer"
+                    }
+                    "Basic" {
+                        $Headers["Authorization"] = "Basic $(ConvertFrom-SecureString -AsPlainText $AccessToken)"
+                    }
                 }
             }
-        } else {
-            # PS6+ Logic
-            switch ($TokenType) {
-                "Bearer" {
-                    $Payload["Token"] = "$AccessToken" # should remain a SecureString
-                    $Payload["Authentication"] = "Bearer"
-                }
-                "Basic" {
-                    $Headers["Authorization"] = "Basic $(ConvertFrom-SecureString -AsPlainText $AccessToken)"
-                }
-            }
+        } catch {
+            Write-TerminatingError -Exception $_.Exception `
+                -Message "Failed to process the -AccessToken for authentication." `
+                -Category ParserError `
+                -ErrorId "Ntfy.AccessTokenError"
         }
         if($Credential) {
             Write-Warning "Both AccessToken and Credential were provided. Only AccessToken will be used for authentication."
         }
     } elseif($Credential) {
-        $EncodedAuth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$($Credential.UserName):$($Credential.GetNetworkCredential().Password)"))
-        $Headers["Authorization"] = "Basic $EncodedAuth"
+        try {
+            $EncodedAuth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$($Credential.UserName):$($Credential.GetNetworkCredential().Password)"))
+            $Headers["Authorization"] = "Basic $EncodedAuth"
+        } catch {
+            Write-TerminatingError -Exception $_.Exception `
+                -Message "Failed to process the -Credential for authentication." `
+                -Category ParserError `
+                -ErrorId "Ntfy.CredentialError"
+        }
     }
 
     # build out notification
