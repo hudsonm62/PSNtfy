@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 ### Added
 
 - `about_PSNtfy` help topic.
+- Add CodeCov test report and coverage uploads.
 
 ### Changed
 

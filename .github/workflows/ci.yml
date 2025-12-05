@@ -93,6 +93,26 @@ jobs:
           name: test-results_${{ runner.os }}-pwsh-${{ steps.setup-meta.outputs.short-sha }}-${{ steps.setup-meta.outputs.timestamp }}
           path: testResults.xml
 
+      - name: 📜 Coverage Report to Codecov
+        if: steps.tests.outcome != 'skipped' && !cancelled()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: coverage
+          fail_ci_if_error: true
+          flags: pester
+          disable_telem: true
+
+      - name: 📜 Test Results to Codecov
+        if: steps.tests.outcome != 'skipped' && !cancelled()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: test_results
+          fail_ci_if_error: true
+          flags: pester
+          disable_telem: true
+
   test-powershell:
     runs-on: windows-latest
 
@@ -144,3 +164,23 @@ jobs:
         with:
           name: test-results_ps5-${{ steps.setup-meta.outputs.short-sha }}-${{ steps.setup-meta.outputs.timestamp }}
           path: testResults.xml
+
+      - name: 📜 Coverage Report to Codecov
+        if: steps.tests.outcome != 'skipped' && !cancelled()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: coverage
+          fail_ci_if_error: true
+          flags: pester
+          disable_telem: true
+
+      - name: 📜 Test Results to Codecov
+        if: steps.tests.outcome != 'skipped' && !cancelled()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: test_results
+          fail_ci_if_error: true
+          flags: pester
+          disable_telem: true
