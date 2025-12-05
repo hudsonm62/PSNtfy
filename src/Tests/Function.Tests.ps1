@@ -93,6 +93,47 @@ Describe "Write-TerminatingError" {
         }
     }
 }
+Describe "Save-NtfyAuthentication" {
+    InModuleScope PSNtfy {
+        BeforeAll {
+            $MockCredString = 'FakePassword'
+            $MockSecureString = ConvertTo-SecureString $MockCredString -AsPlainText -Force
+        }
+        BeforeEach {
+            $Payload = @{}
+            $Headers = @{}
+            $PayloadHeaders = @{
+                Payload = $Payload
+                Headers = $Headers
+            }
+        }
+        Context "Using AccessToken" {
+            It "should use Bearer token by default" {
+                Save-NtfyAuthentication -AccessToken $MockSecureString @PayloadHeaders
+
+                if($PSVersionTable.PSVersion.Major -le 5){
+                    $Headers["Authorization"] | Should -Be "Bearer $MockCredString"
+                } else {
+                    $Payload["Token"] | Should -Be $MockSecureString
+                    $Payload["Authentication"] | Should -Be "Bearer"
+                }
+            }
+            It "should specify Basic token when requested" {
+                Save-NtfyAuthentication -AccessToken $MockSecureString -TokenType "Basic" @PayloadHeaders
+                $Headers["Authorization"] | Should -Be "Basic $MockCredString"
+            }
+        }
+        Context "Using Credential" {
+            It "should use Basic Auth Credential" {
+                $MockUser = "user"
+                $MockCredential = New-Object System.Management.Automation.PSCredential ($MockUser, $MockSecureString)
+                Save-NtfyAuthentication -Credential $MockCredential @PayloadHeaders
+                $EncodedCreds = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$MockUser" + ':' + "$MockCredString"))
+                $Headers["Authorization"] | Should -Be "Basic $EncodedCreds"
+            }
+        }
+    }
+}
 #endregion
 #region Public
 Describe "ConvertTo-NtfyAction" {

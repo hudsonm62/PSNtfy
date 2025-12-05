@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 
 ### Added
 
+- Private function `Save-NtfyAuthentication` to handle authentication headers.
 - `about_PSNtfy` help topic.
 - Add CodeCov test report and coverage uploads.
 
