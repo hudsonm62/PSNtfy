@@ -31,5 +31,5 @@ function ConvertTo-NtfyAction {
     )
 
     # make string
-    return "$Action, $Label, $URL, $Clear"
+    return "$Action, $Label, $URL, clear=$($Clear.ToString().ToLower())"
 }

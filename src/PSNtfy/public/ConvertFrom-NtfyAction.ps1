@@ -18,7 +18,7 @@ function ConvertFrom-NtfyAction {
         }
 
         if($null -ne $Keys[3]){
-            [bool]$ToBool = [bool]::Parse($Keys[3]) # Convert to bool type
+            [bool]$ToBool = [bool]::Parse($Keys[3] -replace 'clear=') # Convert to bool type
             $result.Add('Clear', $ToBool)
         }
 
