@@ -6,9 +6,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog] and this project adheres to [Semantic Versioning](http://semver.org/).
 
-[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.2.1...dev
+[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.2.2...dev
 
 ## [Unreleased]
+
+## [v0.2.2] - 2025-12-06
 
 ### Added
 
@@ -18,6 +20,8 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 ### Changed
 
 - Join Headers using `Add-ObjectPropSafe`.
+
+[v0.2.2]: https://github.com/hudsonm62/PSNtfy/releases/tag/v0.2.2
 
 ## [v0.2.1] - 2025-12-06
 
