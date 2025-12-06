@@ -368,4 +368,197 @@ Describe "Send-NtfyPush" {
         }
     }
 }
+Describe "Receive-NtfyPush" {
+    BeforeAll {
+        $MultiLineJson = "{ id: 'test', 'message': 'test' }`n{ id: 'test2', 'message': 'test' }`n"
+        $SingleLineObject = [PSCustomObject]@{ id = 'test'; message = 'test' }
+        $FullObject = [PSCustomObject]@{
+            # copied from https://docs.ntfy.sh/subscribe/api/#json-message-format
+            id = "sPs71M8A2T";time = 1643935928;expires = 1643936928;event = "message"
+            topic = "mytopic";priority = 5
+            tags = @("warning","skull");click = "https://homecam.mynet.lan/incident/1234"
+            attachment = @{
+                name = "camera.jpg";type = "image/png"
+                size = 33848;expires = 1643946728
+                url = "https://ntfy.sh/file/sPs71M8A2T.png"
+            }
+            title = "Unauthorized access detected";message = "Movement detected in the yard. You better go check"
+        }
+        $NtfyTestEndpoint = "https://ntfy.sh"
+    }
+    Context "URI Construction" {
+        BeforeEach {
+            Mock 'Invoke-RestMethod' {
+                return $MultiLineJson
+            } -ModuleName PSNtfy
+        }
+
+        It "should construct proper URI with valid endpoint and topic" {
+            Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter { $Uri -eq "$NtfyTestEndpoint/ps-test/json" }
+        }
+        It "should construct proper URI with trailing slash in endpoint" {
+            Receive-NtfyPush -NtfyEndpoint "$NtfyTestEndpoint/" -Topic "ps-test" -ErrorAction Stop
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter { $Uri -eq "$NtfyTestEndpoint/ps-test/json" }
+        }
+        It "should construct proper URI with leading slash in topic" {
+            Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "/ps-test" -ErrorAction Stop
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter { $Uri -eq "$NtfyTestEndpoint/ps-test/json" }
+        }
+        It "should throw on invalid URI" {
+            { Receive-NtfyPush -NtfyEndpoint "ht!tp://invalid-uri" -Topic "ps-test" -ErrorAction Stop } | Should -Throw
+        }
+    }
+    Context "Authentication Handling" {
+        BeforeAll {
+            Mock 'Invoke-RestMethod' { return $SingleLineObject } -ModuleName PSNtfy
+            $MockCredString = 'FakePassword'
+            $MockSecureString = ConvertTo-SecureString $MockCredString -AsPlainText -Force
+            $MockUser = "user"
+            $MockCredential = New-Object System.Management.Automation.PSCredential ($MockUser, $MockSecureString)
+            $TokenParamFilter = {
+                # PS5 path: Authorization header is set
+                (
+                    $Headers -and
+                    $Headers.ContainsKey("Authorization") -and
+                    $Headers["Authorization"] -contains "Bearer $MockCredString"
+                ) -or
+                # PS6+ path: Token & Authentication fields on the payload/body
+                (
+                    $Authentication -contains "Bearer" -and
+                    $Token -eq $MockSecureString
+                )
+            }
+
+            $splat = @{
+                NtfyEndpoint = $NtfyTestEndpoint
+                Topic        = "ps-test"
+                ErrorAction = "Stop"
+            }
+        }
+        It "should use Basic token when AccessToken is provided" {
+            Receive-NtfyPush @splat -AccessToken $MockSecureString -TokenType "Basic"
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter {
+                $Headers.ContainsKey("Authorization") -and
+                $Headers["Authorization"] -eq "Basic $MockCredString"
+            }
+        }
+        It "should use Bearer token when AccessToken is provided" {
+            Receive-NtfyPush @splat -AccessToken $MockSecureString -TokenType "Bearer"
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter $TokenParamFilter
+        }
+        It "should handle Basic Auth Credential" {
+            Receive-NtfyPush @splat -Credential $MockCredential
+            $EncodedCreds = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$MockUser" + ':' + "$MockCredString"))
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter {
+                $Headers.ContainsKey("Authorization") -and
+                $Headers["Authorization"] -eq "Basic $EncodedCreds"
+            }
+        }
+        It "should throw if both AccessToken & Credentials are provided" {
+            { Receive-NtfyPush @splat -AccessToken $MockSecureString -Credential $MockCredential -TokenType "Bearer" } |
+                Should -Throw -ErrorId 'AmbiguousParameterSet,Receive-NtfyPush'
+        }
+    }
+    Context "Header Creation" {
+        BeforeEach {
+            Mock 'Invoke-RestMethod' {
+                return $MultiLineJson
+            } -ModuleName PSNtfy
+        }
+        It "should not double up on poll parameter" {
+            Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -Parameters @{'X-Poll'=1} -ErrorAction Stop -WarningAction SilentlyContinue
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter {
+                -not $Headers.ContainsKey("X-Poll") -and
+                $Headers["poll"] -eq 1
+            }
+        }
+        It "should append poll parameter if not present" {
+            Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter {
+                $Headers.ContainsKey("poll") -and
+                $Headers["poll"] -eq 1
+            }
+        }
+    }
+    Context "Response Parsing" {
+        Context "Multi Lined" {
+            It "should successfully parse multi-lined JSON response" {
+                Mock 'Invoke-RestMethod' {
+                    return $MultiLineJson
+                } -ModuleName PSNtfy
+
+                $result = Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
+                $result | Should -Not -Be $null
+
+                $result.Count | Should -BeExactly 2
+                $result[0].Id | Should -Be 'test'
+                $result[0].Message | Should -Be 'test'
+                $result[1].Id | Should -Be 'test2'
+                $result[1].Message | Should -Be 'test'
+            }
+            It "should skip invalid entries in multi-lined JSON response" {
+                $InvalidMultiLineJson = "{ id: 'test', 'message': 'test' }`n{ 'message': 'missing id' }`n{ id: 'test2', 'message': 'test' }`n"
+                Mock 'Invoke-RestMethod' {
+                    return $InvalidMultiLineJson
+                } -ModuleName PSNtfy
+
+                $result = Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
+                $result | Should -Not -Be $null
+
+                $result.Count | Should -BeExactly 2
+                $result[0].Id | Should -Be 'test'
+                $result[0].Message | Should -Be 'test'
+                $result[1].Id | Should -Be 'test2'
+                $result[1].Message | Should -Be 'test'
+            }
+            It "should handle empty multi-lined JSON response" {
+                Mock 'Invoke-RestMethod' {
+                    return "`n`n`n"
+                } -ModuleName PSNtfy
+
+                $result = Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
+                $result | Should -Be $null
+                $result.Count | Should -BeExactly 0
+            }
+            It "should throw on malformed JSON response" {
+                $MalformedJson = "{ id: 'test', 'message': 'test' `n{ id: 'test2', 'message': 'test' }`n"
+                Mock 'Invoke-RestMethod' {
+                    return $MalformedJson
+                } -ModuleName PSNtfy
+
+                { Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop } | Should -Throw -ErrorId "Ntfy.ResponseParseError"
+            }
+        }
+        Context "Single Object" {
+            It "should handle single object response" {
+                Mock 'Invoke-RestMethod' {
+                    return $SingleLineObject
+                } -ModuleName PSNtfy
+
+                $result = Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
+
+                $result.Count | Should -Be 1
+                $result[0].Id | Should -Be 'test'
+                $result[0].Message | Should -Be 'test'
+            }
+            It "should handle a full single line object" {
+                Mock 'Invoke-RestMethod' {
+                    return $FullObject
+                } -ModuleName PSNtfy
+
+                $result = Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
+                $result.Count | Should -Be 1
+                $result.Id | Should -Be $FullObject.id
+                $result.Title | Should -Be $FullObject.title
+                $result.Message | Should -Be $FullObject.message
+                $result.Priority | Should -Be $FullObject.priority
+                $result.Time | Should -BeOfType DateTime
+                $result.Attachment | Should -Not -Be $null
+                $result.Attachment.Name | Should -Be $FullObject.attachment.name
+                $result.Attachment.Expires | Should -BeOfType DateTime
+            }
+        }
+    }
+}
 #endregion

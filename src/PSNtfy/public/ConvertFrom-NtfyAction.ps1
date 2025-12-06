@@ -39,6 +39,7 @@ function ConvertFrom-NtfyAction {
         Add-ObjectPropSafe -Object $Hashtable -Key 'Label' -Value $Keys[1] # Label is the only common/required field
 
         try {
+            Write-Verbose "Parsing '$ActionType' action type"
             switch ($ActionType) {
                 'view' {
                     # view is simple, only Label, Url, Clear
@@ -53,14 +54,16 @@ function ConvertFrom-NtfyAction {
                         foreach ($part in $Keys[2..($Keys.Count - 1)]) {
                             # Process Each "key part"
                             if ($part -like 'extras.*=*') {
+                                Write-Verbose "Processing extras part: $part"
                                 # extras.one=2  ->  Extras["one"] = "2"
                                 $name, $value = Get-KeyValueString -In $part -Prefix 'extras'
                                 if (-not $Hashtable.Extras) { $Hashtable.Extras = @{} }
                                 Add-ObjectPropSafe -Object $Hashtable.Extras -Key $name -Value $value
                             } elseif ($part -like 'clear=*') {
-                                # clear=true/false
+                                Write-Verbose "Processing clear part: $part"
                                 $Hashtable.Clear = Convert-ClearStringToBool -In $part
                             } else {
+                                Write-Verbose "Processing intent part: $part"
                                 # probably Intent
                                 if($Hashtable.Intent) {
                                     throw "Multiple Intent parts detected in ActionString, a potentially malformed string."
@@ -77,15 +80,18 @@ function ConvertFrom-NtfyAction {
                         foreach ($part in $Keys[3..($Keys.Count - 1)]) {
                             # Process Each "key part"
                             if ($part -like 'headers.*=*') {
+                                Write-Verbose "Processing headers part: $part"
                                 # headers.one=2  ->  Headers["one"] = "2"
                                 $name, $value = Get-KeyValueString -In $part -Prefix 'headers'
                                 if (-not $Hashtable.Headers) { $Hashtable.Headers = @{} }
                                 Add-ObjectPropSafe -Object $Hashtable.Headers -Key $name -Value $value
                             } elseif ($part -like 'clear=*') {
                                 # clear=true/false
+                                Write-Verbose "Processing clear part: $part"
                                 $Hashtable.Clear = Convert-ClearStringToBool -In $part
                             } elseif ($part -like 'method=*') {
                                 # Method
+                                Write-Verbose "Processing method part: $part"
                                 $MethodType = ($part -replace 'method=')
                                 if($MethodType -notmatch '^(get|post|put|delete|patch|head|options)$') {
                                     throw "Invalid 'HTTP' Method '$MethodType' detected in ActionString."
@@ -95,6 +101,7 @@ function ConvertFrom-NtfyAction {
                                 }
                                 $Hashtable.Method = $MethodType
                             } else {
+                                Write-Verbose "Processing body part: $part"
                                 # probably Body
                                 if($Hashtable.Body) {
                                     throw "Multiple body parts detected in ActionString, a potentially malformed string."
@@ -115,6 +122,7 @@ function ConvertFrom-NtfyAction {
                 -ErrorId "Ntfy.ActionStringParseError"
         }
 
+        Write-Verbose "Successfully created action hashtable."
         return $Hashtable
     }
 }
