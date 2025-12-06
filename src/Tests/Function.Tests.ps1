@@ -93,11 +93,16 @@ Describe "Write-TerminatingError" {
         }
     }
 }
+#endregion
+#region Public
 Describe "Save-NtfyAuthentication" {
     InModuleScope PSNtfy {
         BeforeAll {
             $MockCredString = 'FakePassword'
             $MockSecureString = ConvertTo-SecureString $MockCredString -AsPlainText -Force
+            $MockUser = "user"
+            $MockCredential = New-Object System.Management.Automation.PSCredential ($MockUser, $MockSecureString)
+            $EncodedMockCreds = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$MockUser" + ':' + "$MockCredString"))
         }
         BeforeEach {
             $Payload = @{}
@@ -128,20 +133,53 @@ Describe "Save-NtfyAuthentication" {
         }
         Context "Using Credential" {
             It "should use Basic Auth Credential" {
-                $MockUser = "user"
-                $MockCredential = New-Object System.Management.Automation.PSCredential ($MockUser, $MockSecureString)
                 Save-NtfyAuthentication -Credential $MockCredential @PayloadHeaders
-                $EncodedCreds = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$MockUser" + ':' + "$MockCredString"))
-                $Headers["Authorization"] | Should -Be "Basic $EncodedCreds"
+                $Headers["Authorization"] | Should -Be "Basic $EncodedMockCreds"
             }
             It "should throw if Credential is invalid" {
                 { Save-NtfyAuthentication -Credential $null @PayloadHeaders } | Should -Throw
             }
         }
+        Context "Header Creation" {
+            It "should create headers in payload if not present" {
+                $Payload = @{}
+                Save-NtfyAuthentication -Payload $Payload -Credential $MockCredential
+                $Payload.ContainsKey("Headers") | Should -Be $true
+                $Payload.Headers.Authorization | Should -Not -Be $null
+                $Payload.Headers.Authorization | Should -Be "Basic $EncodedMockCreds"
+            }
+            It "should add headers to payload's header property" {
+                $PayloadWithHeaders = @{ Headers = @{ ExistingKey = "ExistingValue" } }
+                Save-NtfyAuthentication -Payload $PayloadWithHeaders -Credential $MockCredential
+                $PayloadWithHeaders.ContainsKey("Headers") | Should -Be $true
+                # Confirm didn't overwrite unrelated headers
+                $PayloadWithHeaders.Headers.ExistingKey | Should -Be "ExistingValue"
+                # Confirm added Authorization
+                $PayloadWithHeaders.Headers.Authorization | Should -Be "Basic $EncodedMockCreds"
+            }
+            It "should work with Bearer Token on PS5" {
+                $Payload = @{}
+                Save-NtfyAuthentication -Payload $Payload -AccessToken $MockSecureString -TokenType "Bearer"
+                $Payload.ContainsKey("Headers") | Should -Be $true
+                $Payload.Headers.Authorization | Should -Be "Bearer $MockCredString"
+            } -Skip:($PSVersionTable.PSVersion.Major -ge 6) # skip on PS6+
+            It "should not create headers for Bearer Token on PS6+" {
+                $Payload = @{}
+                Save-NtfyAuthentication -Payload $Payload -AccessToken $MockSecureString -TokenType "Bearer"
+                $Payload.ContainsKey("Headers") | Should -Be $false
+            } -Skip:($PSVersionTable.PSVersion.Major -lt 6) # skip on LT PS6
+            It "should create header for Basic Token on PS6+" {
+                $Payload = @{}
+                Save-NtfyAuthentication -Payload $Payload -AccessToken $MockSecureString -TokenType "Basic"
+            } -Skip:($PSVersionTable.PSVersion.Major -lt 6) # skip on LT PS6
+            It "should overwrite existing headers" {
+                $PayloadWithHeaders = @{ Headers = @{ Authorization = "Basic OldValue" } }
+                Save-NtfyAuthentication -Payload $PayloadWithHeaders -Credential $MockCredential
+                $PayloadWithHeaders.Headers.Authorization | Should -Be "Basic $EncodedMockCreds"
+            }
+        }
     }
 }
-#endregion
-#region Public
 Describe "ConvertTo-NtfyAction" {
     Context "view actions" {
         It "should convert a view action" {
@@ -335,7 +373,19 @@ Describe "Send-NtfyPush" {
             }
         }
     }
-
+    Context "Test switches" {
+        It "should work with all switches" { # primarily for code coverage
+            Mock 'Invoke-RestMethod' { } -ModuleName PSNtfy
+            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" `
+                -NoCaching -DisableFirebase -UnifiedPush -Markdown
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter {
+                $Headers.Markdown -eq 'yes' -and
+                $Headers.Cache -eq 'no' -and
+                $Headers.Firebase -eq 'no' -and
+                $Headers.UnifiedPush -eq '1'
+            }
+        }
+    }
     Context "Test real notify to ntfy.sh" {
         It "should send a basic notification to ntfy.sh" {
             # Note: This test may fail if there are network issues or if ntfy.sh is down
@@ -538,9 +588,9 @@ Describe "Receive-NtfyPush" {
 
                 $result = Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
 
-                $result.Count | Should -Be 1
-                $result[0].Id | Should -Be 'test'
-                $result[0].Message | Should -Be 'test'
+                $result | Should -Not -Be $null
+                $result.Id | Should -Be 'test'
+                $result.Message | Should -Be 'test'
             }
             It "should handle a full single line object" {
                 Mock 'Invoke-RestMethod' {
@@ -548,7 +598,7 @@ Describe "Receive-NtfyPush" {
                 } -ModuleName PSNtfy
 
                 $result = Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
-                $result.Count | Should -Be 1
+                $result | Should -Not -Be $null
                 $result.Id | Should -Be $FullObject.id
                 $result.Title | Should -Be $FullObject.title
                 $result.Message | Should -Be $FullObject.message

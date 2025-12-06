@@ -4,7 +4,7 @@
 RootModule = 'PSNtfy.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.2.2'
+ModuleVersion = '0.2.3'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -61,7 +61,7 @@ PowerShellVersion = '5.1'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Send-NtfyPush', 'Receive-NtfyPush', 'ConvertTo-NtfyAction', 'ConvertFrom-NtfyAction'
+FunctionsToExport = 'Send-NtfyPush', 'Receive-NtfyPush', 'ConvertTo-NtfyAction', 'ConvertFrom-NtfyAction', 'Save-NtfyAuthentication'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = ''
@@ -70,7 +70,7 @@ CmdletsToExport = ''
 VariablesToExport = ''
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = 'Send-Ntfy', 'Receive-Ntfy', 'sdn', 'rcn', 'ctn', 'cfn'
+AliasesToExport = 'Send-Ntfy', 'Receive-Ntfy', 'Save-NtfyAuth', 'sdn', 'rcn', 'ctn', 'cfn', 'sva'
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
