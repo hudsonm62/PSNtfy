@@ -6,12 +6,11 @@ on:
       - "psakefile.ps1"
   workflow_dispatch:
 
-defaults:
-  run:
-    shell: pwsh
-
 jobs:
   test-pwsh:
+    defaults:
+      run:
+        shell: pwsh
     strategy:
       fail-fast: false
       matrix:
@@ -20,6 +19,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: ⚙️ Check PS Version
+        run: $PSVersionTable
+
       - name: ⚙️ Checkout code
         uses: actions/checkout@v6
 
@@ -90,8 +92,14 @@ jobs:
 
   test-powershell:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: powershell
 
     steps:
+      - name: ⚙️ Check PS Version
+        run: $PSVersionTable
+
       - name: ⚙️ Checkout code
         uses: actions/checkout@v6
 
