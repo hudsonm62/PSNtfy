@@ -29,28 +29,11 @@ jobs:
         id: setup-meta
         uses: ./.github/actions/get-metadata
 
-      - name: 🥓 Set PS7 Cache Path
-        id: ps-cache
-        run: |
-          if ($IsWindows) {
-            echo "CACHE_PATH=$(Join-Path $HOME 'Documents\PowerShell\Modules')" >> $env:GITHUB_OUTPUT
-          } else {
-            echo "CACHE_PATH=$HOME/.local/share/powershell/Modules" >> $env:GITHUB_OUTPUT
-          }
-
       - name: 🥓 Cache PowerShell modules
-        uses: actions/cache@v4
+        uses: potatoqualitee/psmodulecache@v6.2
         with:
-          path: ${{ steps.ps-cache.outputs.CACHE_PATH }}
-          key: ${{ runner.os }}-pwsh-${{ hashFiles('**/requirements.psd1') }}
-          restore-keys: |
-            ${{ runner.os }}-pwsh-
-
-      - name: 🔻 Bootstrap
-        run: |
-          Set-PSRepository PSGallery -InstallationPolicy Trusted
-          Install-Module -Name PSake -Scope CurrentUser -Confirm:$false
-          Install-Module -Name Pester -MaximumVersion 5.7.1 -Confirm:$false
+          modules-to-cache: psake, Pester:5.7.1, PSScriptAnalyzer:1.24.0
+          shell: pwsh
 
       - name: 🧪 Run Pester
         id: tests
@@ -107,24 +90,11 @@ jobs:
         id: setup-meta
         uses: ./.github/actions/get-metadata
 
-      - name: 🥓 Set PS5 Cache Path
-        id: ps-cache
-        run: |
-          echo "CACHE_PATH=$(Join-Path $HOME 'Documents\WindowsPowerShell\Modules')" >> $env:GITHUB_OUTPUT
-
       - name: 🥓 Cache PowerShell modules
-        uses: actions/cache@v4
+        uses: potatoqualitee/psmodulecache@v6.2
         with:
-          path: ${{ steps.ps-cache.outputs.CACHE_PATH }}
-          key: ${{ runner.os }}-powershell-${{ hashFiles('**/requirements.psd1') }}
-          restore-keys: |
-            ${{ runner.os }}-powershell-
-
-      - name: 🔻 Bootstrap
-        run: |
-          Set-PSRepository PSGallery -InstallationPolicy Trusted
-          Install-Module -Name PSake -Scope CurrentUser -Confirm:$false
-          Install-Module -Name Pester -MaximumVersion 5.7.1 -Confirm:$false
+          modules-to-cache: psake, Pester:5.7.1, PSScriptAnalyzer:1.24.0
+          shell: powershell
 
       - name: 🧪 Run Pester
         id: tests
