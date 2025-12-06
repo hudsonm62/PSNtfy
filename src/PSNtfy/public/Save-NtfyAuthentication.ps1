@@ -3,6 +3,7 @@
     Saves authentication information into the proper hashtable(s), for well-formed Ntfy requests.
 #>
 function Save-NtfyAuthentication {
+    [Alias('Save-NtfyAuth')][Alias('sva')]
     [CmdletBinding(DefaultParameterSetName = "Token")]
     param (
         [Parameter(Mandatory = $true)]
@@ -68,3 +69,5 @@ function Save-NtfyAuthentication {
         default {}
     }
 }
+Set-Alias -Name sva -Value Save-NtfyAuthentication
+Set-Alias -Name Save-NtfyAuth -Value Save-NtfyAuthentication

@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 ### Added
 
 - Make `Save-NtfyAuthentication` public.
+    - Added aliases - `sva`, `Save-NtfyAuth`
 
 ## [v0.2.2] - 2025-12-06
 
