@@ -93,6 +93,7 @@ function ConvertTo-NtfyAction {
     )
     try {
         $ClearString = "clear=$($Clear.ToString().ToLower())"
+        Write-Verbose "Building Ntfy Action string for Action type '$($PSCmdlet.ParameterSetName.ToLowerInvariant())'"
         $return = switch ($PSCmdlet.ParameterSetName) {
             'View' {
                 "view, $Label, $Url, $ClearString"
@@ -121,6 +122,8 @@ function ConvertTo-NtfyAction {
             -ErrorId "Ntfy.ActionStringConstructionError"
     }
 
+    Write-Verbose "Successfully built Ntfy Action string."
+    Write-Debug "Final Action string: $return"
     return $return
 }
 Set-Alias -Name ctn -Value ConvertTo-NtfyAction

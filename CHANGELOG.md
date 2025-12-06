@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 ### Added
 
 - `Receive-NtfyPush` to query for push notifications from a Ntfy server.
+- Verbose & Debug logging.
 
 ### Changed
 

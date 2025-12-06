@@ -64,6 +64,8 @@ function Receive-NtfyPush {
         [string]$TokenType = "Bearer"
     )
 
+    Write-Verbose "Custom Query parameters provided: $($Parameters.Count)"
+
     # build uri
     try {
         $builder = [System.UriBuilder]$NtfyEndpoint
@@ -86,17 +88,22 @@ function Receive-NtfyPush {
     # build out access payload from Save-NtfyAuthentication
     switch($PSCmdlet.ParameterSetName) {
         'AccessToken' {
+            Write-Verbose "Using AccessToken for authentication with TokenType: $TokenType"
             Save-NtfyAuthentication -Payload $Payload -Headers $Headers -AccessToken $AccessToken -TokenType $TokenType
         }
         'Credential' {
+            Write-Verbose "Using PSCredential for Basic authentication"
             Save-NtfyAuthentication -Payload $Payload -Headers $Headers -Credential $Credential
         }
-        default {<# no auth #>}
+        default {
+            Write-Verbose "No authentication method specified - Proceeding Anonymously."
+        }
     }
 
     # Join Query Parameters into Headers
     foreach ($key in $Parameters.Keys) {
         Add-ObjectPropSafe -Object $Headers -Key $key -Value $Parameters[$key]
+        Write-Debug "Added query parameter: $key = $($Parameters[$key])"
     }
     try {
         # ensure no duplicate poll parameter so we can always ensure it's set.
@@ -104,27 +111,34 @@ function Receive-NtfyPush {
             if ($Headers.ContainsKey($_)) {
                 Write-Warning "The '$_' parameter is managed by Receive-NtfyPush and will be overridden to ensure immediate response. You may remove it from your Parameters hashtable."
                 $Headers.Remove($_)
+                Write-Verbose "Removing '$_' query parameter."
             }
         }
     } finally {
         Add-ObjectPropSafe -Object $Headers -Key 'poll' -Value 1
+        Write-Verbose "Adding 'poll=1' query parameter."
     }
 
     # Join Headers into Payload
     Add-ObjectPropSafe -Object $Payload -Key "Headers" -Value $Headers
 
     # Receive Response
+    Write-Verbose "Executing query to Ntfy server..."
     $response = Invoke-RestMethod @Payload
     $results = [System.Collections.Generic.List[PSCustomObject]]::new()
 
     # Determine response type and parse accordingly
     try {
-        $JSONParsed = switch ($response.GetType().Name){
+        $ResponseTypeName = $response.GetType().Name
+        Write-Debug "Raw response type: $ResponseTypeName"
+        $JSONParsed = switch ($ResponseTypeName){
             'String' {
+                Write-Debug "Processing newline-delimited JSON response"
                 # Newline-delimited JSON response
                 $response -split "`n" | ForEach-Object {
                     if ($_.Trim() -ne "") { # skip empty lines
                         try {
+                            Write-Debug "Parsing JSON line: $_"
                             $_ | ConvertFrom-Json
                         } catch {
                             # Re-throw to trigger the outer catch and terminating error
@@ -135,6 +149,7 @@ function Receive-NtfyPush {
                 break;
             }
             'PSCustomObject' {
+                Write-Debug "Processing single object response"
                 $response
                 break;
             }
@@ -148,10 +163,11 @@ function Receive-NtfyPush {
             -ErrorId "Ntfy.ResponseParseError"
     }
 
-
+    Write-Verbose "Processing $($JSONParsed.Count) notification entries"
     $JSONParsed | ForEach-Object {
         try {
             if(-not $_.id){
+                Write-Debug "Skipping an entry without ID"
                 continue # skip invalid entries
             }
 
@@ -192,6 +208,7 @@ function Receive-NtfyPush {
         }
     }
 
+    Write-Verbose "Successfully retrieved $($results.Count) notifications"
     return $results
 }
 Set-Alias -Name rcn -Value Receive-NtfyPush

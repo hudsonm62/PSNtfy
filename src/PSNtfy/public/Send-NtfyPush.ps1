@@ -214,6 +214,7 @@ function Send-NtfyPush {
         $builder = [System.UriBuilder]$NtfyEndpoint
         $builder.Path = (Join-Path -Path $builder.Path -ChildPath $Topic)
         $FullUri = $builder.Uri.AbsoluteUri
+        Write-Debug "Constructed Full URI: $FullUri"
     } catch {
         Write-TerminatingError -Exception $_.Exception `
             -Message "Failed to construct a properly formed Endpoint URI." `
@@ -229,12 +230,16 @@ function Send-NtfyPush {
 
     # build out access payload from Save-NtfyAuthentication
     if($AccessToken) {
+        Write-Verbose "Using AccessToken for authentication with TokenType: $TokenType"
         Save-NtfyAuthentication -Payload $Payload -Headers $Headers -AccessToken $AccessToken -TokenType $TokenType -ErrorAction Stop
         if($Credential) {
             Write-Warning "Both AccessToken and Credential were provided. Only AccessToken will be used for authentication."
         }
     } elseif($Credential) {
+        Write-Verbose "Using PSCredential for Basic authentication"
         Save-NtfyAuthentication -Payload $Payload -Headers $Headers -Credential $Credential -ErrorAction Stop
+    } else {
+        Write-Verbose "No authentication method specified - Proceeding Anonymously."
     }
 
     # build out notification
@@ -253,8 +258,16 @@ function Send-NtfyPush {
     Add-ObjectPropSafe -Object $Headers -Key "Attach" -Value $AttachByURL
 
     ## Booleans & Arrays
-    if($Actions) { $Headers["Actions"] = ($Actions -join ";") }
-    if($Tags) { $Headers["Tags"] = ($Tags -join ",") }
+    if($Actions) {
+        $Headers["Actions"] = ($Actions -join ";")
+        Write-Verbose "Added $($Actions.Count) action(s)."
+        Write-Debug "Actions string: $($Headers["Actions"])"
+    }
+    if($Tags) {
+        $Headers["Tags"] = ($Tags -join ",")
+        Write-Verbose "Added $($Tags.Count) tag(s)."
+        Write-Debug "Tags string: $($Headers["Tags"])"
+    }
     if($Markdown.IsPresent) { $Headers["Markdown"] = "yes" }
     if($NoCaching.IsPresent) { $Headers["Cache"] = "no" }
     if($DisableFirebase.IsPresent) { $Headers["Firebase"] = "no" }
