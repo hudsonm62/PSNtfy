@@ -10,6 +10,12 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 
 ## [Unreleased]
 
+## [v0.2.3] - 2025-12-06
+
+### Added
+
+- Make `Save-NtfyAuthentication` public.
+
 ## [v0.2.2] - 2025-12-06
 
 ### Added
