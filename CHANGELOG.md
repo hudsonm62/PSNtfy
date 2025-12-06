@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 
 ## [Unreleased]
 
+### Added
+
+- `Receive-NtfyPush` to query for push notifications from a Ntfy server.
+
 ## [v0.2.1] - 2025-12-06
 
 ### Fixed
