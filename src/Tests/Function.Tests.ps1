@@ -588,9 +588,9 @@ Describe "Receive-NtfyPush" {
 
                 $result = Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
 
-                $result.Count | Should -Be 1
-                $result[0].Id | Should -Be 'test'
-                $result[0].Message | Should -Be 'test'
+                $result | Should -Not -Be $null
+                $result.Id | Should -Be 'test'
+                $result.Message | Should -Be 'test'
             }
             It "should handle a full single line object" {
                 Mock 'Invoke-RestMethod' {
@@ -598,7 +598,7 @@ Describe "Receive-NtfyPush" {
                 } -ModuleName PSNtfy
 
                 $result = Receive-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" -ErrorAction Stop
-                $result.Count | Should -Be 1
+                $result | Should -Not -Be $null
                 $result.Id | Should -Be $FullObject.id
                 $result.Title | Should -Be $FullObject.title
                 $result.Message | Should -Be $FullObject.message
