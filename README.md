@@ -6,7 +6,7 @@
 
 Cross-platform PowerShell module to assist with building and sending notifications to Ntfy instances.
 
-[![GitHub Tag](https://img.shields.io/github/v/tag/hudsonm62/PSNtfy?label=latest)](https://github.com/hudsonm62/PSNtfy/releases) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hudsonm62/PSNtfy/ci.yml?label=%F0%9F%A7%AA%20%20CI)](https://github.com/hudsonm62/PSNtfy/actions/workflows/ci.yml) ![Codecov](https://img.shields.io/codecov/c/github/hudsonm62/PSNtfy) [![GitHub top language](https://img.shields.io/github/languages/top/hudsonm62/PSNtfy?link=%20)](https://github.com/hudsonm62/PSNtfy/search?l=powershell)
+[![GitHub Tag](https://img.shields.io/github/v/tag/hudsonm62/PSNtfy?label=latest)](https://github.com/hudsonm62/PSNtfy/releases) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hudsonm62/PSNtfy/test.yml?label=Tests)](https://github.com/hudsonm62/PSNtfy/actions/workflows/ci.yml) ![Codecov](https://img.shields.io/codecov/c/github/hudsonm62/PSNtfy) [![GitHub top language](https://img.shields.io/github/languages/top/hudsonm62/PSNtfy?link=%20)](https://github.com/hudsonm62/PSNtfy/search?l=powershell)
 
 </div>
 
