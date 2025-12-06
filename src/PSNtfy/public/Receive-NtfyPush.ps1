@@ -40,6 +40,7 @@
     If you want to 'subscribe' over a period of time to new messages, you should use a different method.
 #>
 function Receive-NtfyPush {
+    [OutputType([System.Collections.Generic.List[PSCustomObject]])]
     [Alias('Receive-Ntfy')][Alias('rcn')]
     [CmdletBinding(DefaultParameterSetName = 'default')]
     param (
