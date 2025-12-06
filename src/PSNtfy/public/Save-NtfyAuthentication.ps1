@@ -1,6 +1,39 @@
 <#
 .SYNOPSIS
-    Saves authentication information into the proper hashtable(s), for well-formed Ntfy requests.
+    Saves authentication information into the proper hashtable(s).
+.DESCRIPTION
+    Saves authentication information to the proper hashtable(s) for use in Ntfy requests.
+    Payload is the main splat for Invoke-RestMethod, Headers is the headers splat.
+
+.PARAMETER Payload
+    Hashtable to the main payload of the Ntfy request.
+.PARAMETER Headers
+    Hashtable to the headers of the Ntfy request. If not provided, it will be created/modified into the Payload instead.
+.PARAMETER AccessToken
+    SecureString token to be used for Bearer or Basic authentication.
+.PARAMETER Credential
+    PSCredential object to be used for Basic authentication.
+.PARAMETER TokenType
+    Type of token being used for authentication. Valid values are "Bearer" and "Basic".
+.EXAMPLE
+    $Payload = @{Method='POST'; Body='test'; URI='https://ntfy.sh/test'}
+    $Headers = @{}
+    $AccessToken = ConvertTo-SecureString 'tk_**' -AsPlainText -Force
+    Save-NtfyAuthentication -Payload $Payload -Headers $Headers -AccessToken $AccessToken -TokenType 'Bearer'
+    Invoke-RestMethod @Payload
+.EXAMPLE
+    $Payload = @{Method='POST'; Body='test'; URI='https://ntfy.sh/test'}
+    $Headers = @{}
+    $Credential = Get-Credential
+    Save-NtfyAuthentication -Payload $Payload -Headers $Headers -Credential $Credential
+    Invoke-RestMethod @Payload
+.EXAMPLE
+    $Payload = @{Method='POST'; Body='test'; URI='https://ntfy.sh/test'}
+    $AccessToken = ConvertTo-SecureString 'tk_**' -AsPlainText -Force
+    Save-NtfyAuthentication -Payload $Payload -AccessToken $AccessToken -TokenType 'Bearer'
+    Invoke-RestMethod @Payload
+
+    # Headers parameter is optional and instead will be created or modified within Payload.
 #>
 function Save-NtfyAuthentication {
     [Alias('Save-NtfyAuth')][Alias('sva')]
