@@ -6,7 +6,7 @@
 
 Cross-platform PowerShell module to assist with building and sending notifications to Ntfy instances.
 
-[![GitHub Tag](https://img.shields.io/github/v/tag/hudsonm62/PSNtfy?label=latest)](https://github.com/hudsonm62/PSNtfy/releases) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hudsonm62/PSNtfy/test.yml?label=Tests)](https://github.com/hudsonm62/PSNtfy/actions/workflows/ci.yml) ![Codecov](https://img.shields.io/codecov/c/github/hudsonm62/PSNtfy) [![GitHub top language](https://img.shields.io/github/languages/top/hudsonm62/PSNtfy?link=%20)](https://github.com/hudsonm62/PSNtfy/search?l=powershell)
+[![GitHub Tag](https://img.shields.io/github/v/tag/hudsonm62/PSNtfy?label=latest)](https://github.com/hudsonm62/PSNtfy/releases) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hudsonm62/PSNtfy/test.yml?label=Tests)](https://github.com/hudsonm62/PSNtfy/actions/workflows/ci.yml) [![Codecov](https://img.shields.io/codecov/c/github/hudsonm62/PSNtfy)](https://codecov.io/gh/hudsonm62/PSNtfy) [![GitHub top language](https://img.shields.io/github/languages/top/hudsonm62/PSNtfy?link=%20)](https://github.com/hudsonm62/PSNtfy/search?l=powershell)
 
 </div>
 
@@ -83,7 +83,7 @@ Two functions for converting simple-format Ntfy Actions have been included:
 This should improve QoL when building notifications with multiple Actions or from dynamic sources:
 
 ```powershell
-$r = @{ NtfyEndpoint 'https://ntfy.sh' ; Topic 'test' }
+$r = @{ NtfyEndpoint = 'https://ntfy.sh' ; Topic = 'test' }
 $action1 = ConvertTo-NtfyAction -View -Label 'Open Website' -Url 'https://google.com'
 $action2 =  ConvertTo-NtfyAction -Http -Label 'Close door' -Url 'https://api.mygarage.lan/' `
                 -Method PUT -Headers @("Authorization=Bearer ExampleToken")
