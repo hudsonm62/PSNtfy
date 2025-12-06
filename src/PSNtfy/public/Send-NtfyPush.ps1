@@ -262,9 +262,7 @@ function Send-NtfyPush {
 
 
     # Join Headers into Payload
-    if($Headers.Count -gt 0) {
-        $Payload["Headers"] = $Headers
-    }
+    Add-ObjectPropSafe -Object $Payload -Key "Headers" -Value $Headers
 
     # Send Web Request
     Invoke-RestMethod @Payload

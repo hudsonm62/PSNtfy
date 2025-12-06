@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 
 - `Receive-NtfyPush` to query for push notifications from a Ntfy server.
 
+### Changed
+
+- Join Headers using `Add-ObjectPropSafe`.
+
 ## [v0.2.1] - 2025-12-06
 
 ### Fixed
