@@ -373,7 +373,19 @@ Describe "Send-NtfyPush" {
             }
         }
     }
-
+    Context "Test switches" {
+        It "should work with all switches" { # primarily for code coverage
+            Mock 'Invoke-RestMethod' { } -ModuleName PSNtfy
+            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" `
+                -NoCaching -DisableFirebase -UnifiedPush -Markdown
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter {
+                $Headers.Markdown -eq 'yes' -and
+                $Headers.Cache -eq 'no' -and
+                $Headers.Firebase -eq 'no' -and
+                $Headers.UnifiedPush -eq '1'
+            }
+        }
+    }
     Context "Test real notify to ntfy.sh" {
         It "should send a basic notification to ntfy.sh" {
             # Note: This test may fail if there are network issues or if ntfy.sh is down
