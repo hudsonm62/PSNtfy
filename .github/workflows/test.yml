@@ -30,7 +30,7 @@ jobs:
         uses: ./.github/actions/get-metadata
 
       - name: 🥓 Cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.2
+        uses: potatoqualitee/psmodulecache@v6.2.1
         with:
           modules-to-cache: psake, Pester:5.7.1, PSScriptAnalyzer:1.24.0
           shell: pwsh
@@ -91,7 +91,7 @@ jobs:
         uses: ./.github/actions/get-metadata
 
       - name: 🥓 Cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.2
+        uses: potatoqualitee/psmodulecache@v6.2.1
         with:
           modules-to-cache: psake, Pester:5.7.1, PSScriptAnalyzer:1.24.0
           shell: powershell
