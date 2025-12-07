@@ -55,17 +55,24 @@ function Save-NtfyAuthentication {
         [string]$TokenType = "Bearer"
     )
 
+    # Ensure Headers hashtable exists inside the payload when needed
+    function Enable-AuthHeaders {
+        param($HeadersHash, $PayloadHash)
+        if(-not $HeadersHash){
+            if(-not $PayloadHash.Headers){
+                Add-ObjectPropSafe -Object $PayloadHash -Key "Headers" -Value @{}
+            }
+            $HeadersHash = $PayloadHash.Headers
+        }
+        return $HeadersHash
+    }
+
     switch ($PSCmdlet.ParameterSetName) {
         "Token" {
             try {
                 if($PSVersionTable.PSVersion.Major -le 5){
                     # PS5- Logic
-                    if(-not $Headers){
-                        if(-not $Payload.Headers){
-                            Add-ObjectPropSafe -Object $Payload -Key "Headers" -Value @{}
-                        }
-                        $Headers = $Payload.Headers
-                    }
+                    $Headers = Enable-AuthHeaders -HeadersHash $Headers -PayloadHash $Payload
                     $Token = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($AccessToken))
                     switch ($TokenType) {
                         "Bearer" {
@@ -83,12 +90,7 @@ function Save-NtfyAuthentication {
                             $Payload["Authentication"] = "Bearer"
                         }
                         "Basic" {
-                            if(-not $Headers){
-                                if(-not $Payload.Headers){
-                                    Add-ObjectPropSafe -Object $Payload -Key "Headers" -Value @{}
-                                }
-                                $Headers = $Payload.Headers
-                            }
+                            $Headers = Enable-AuthHeaders -HeadersHash $Headers -PayloadHash $Payload
                             $Headers["Authorization"] = "Basic $(ConvertFrom-SecureString -AsPlainText $AccessToken)"
                         }
                     }
@@ -101,13 +103,8 @@ function Save-NtfyAuthentication {
             }
         }
         "Credential" {
-            if(-not $Headers){
-                if(-not $Payload.Headers){
-                    Add-ObjectPropSafe -Object $Payload -Key "Headers" -Value @{}
-                }
-                $Headers = $Payload.Headers
-            }
             try {
+                $Headers = Enable-AuthHeaders -HeadersHash $Headers -PayloadHash $Payload
                 $EncodedAuth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$($Credential.UserName):$($Credential.GetNetworkCredential().Password)"))
                 $Headers["Authorization"] = "Basic $EncodedAuth"
             } catch {

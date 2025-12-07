@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 
 ## [Unreleased]
 
+### Changed
+
+- Moved header init logic into a helper function in `Save-NtfyAuthentication`.
+
 ## [v0.2.3] - 2025-12-06
 
 ### Added
