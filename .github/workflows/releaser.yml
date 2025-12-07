@@ -85,7 +85,12 @@ jobs:
           prerelease: false
           fail_on_unmatched_files: true
           #discussion_category_name: "Releases"
-          body: "Release Notes for all versions under [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md)"
+          body: |
+            Release Notes for all versions under [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md)
+
+            ```powershell
+            Update-Module PSNtfy -RequiredVersion ${{ steps.get_version.outputs.module_version }} -Scope CurrentUser
+            ```
           append_body: true
           files: ${{ steps.zip.outputs.release_path }}
 

@@ -66,6 +66,14 @@ Send-NtfyPush -TokenType Basic  -AccessToken $tk
 
 The function will handle formatting the Headers correctly for you depending on your PowerShell version (due to the differences in `Invoke-RestMethod` & `ConvertFrom-SecureString` from PS6+). How we handle it under the hood closely resembles the examples in the Ntfy documentation so you don't have to worry about it.
 
+You can also use `Save-NtfyAuthentication` to store your credentials or token for use directly with `Invoke-RestMethod` or `Invoke-WebRequest`:
+
+```powershell
+$payload = @{ URI = 'https://ntfy.sh/mytopic' ; Body = 'Hello, World' ; Method = 'Post' }
+Save-NtfyAuthentication -AccessToken $tk -Payload $payload #-Headers $Headers
+Invoke-RestMethod @payload
+```
+
 - [Ntfy Docs | Authentication](https://docs.ntfy.sh/publish/#authentication)
 
 > [!CAUTION]

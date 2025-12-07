@@ -6,9 +6,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog] and this project adheres to [Semantic Versioning](http://semver.org/).
 
-[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.2.2...dev
+[Unreleased]: https://github.com/hudsonm62/PSNtfy/compare/v0.2.4...dev
 
 ## [Unreleased]
+
+## [v0.2.4] - 2025-12-07
+
+### Added
+
+- `-Template` param to support notification templates in `Send-NtfyPush`.
+
+### Changed
+
+- Moved header init logic into a helper function in `Save-NtfyAuthentication`.
+- Added missing functions to help topic.
+
+[v0.2.4]: https://github.com/hudsonm62/PSNtfy/releases/tag/v0.2.4
 
 ## [v0.2.3] - 2025-12-06
 

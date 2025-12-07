@@ -4,10 +4,8 @@
 param()
 
 BeforeDiscovery {
-    if(-not (Get-Module PSNtfy -ErrorAction SilentlyContinue)){
-        $ModuleRoot = Resolve-path (Join-Path -Path $PSScriptRoot -ChildPath "../PSNtfy")
-        Import-Module $ModuleRoot -Force -ErrorAction Stop
-    }
+    $ModuleRoot = Resolve-path (Join-Path -Path $PSScriptRoot -ChildPath "../PSNtfy")
+    Import-Module $ModuleRoot -Force -ErrorAction Stop
 }
 
 #region Private
@@ -373,7 +371,7 @@ Describe "Send-NtfyPush" {
             }
         }
     }
-    Context "Test switches" {
+    Context "Test parameters" {
         It "should work with all switches" { # primarily for code coverage
             Mock 'Invoke-RestMethod' { } -ModuleName PSNtfy
             Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" `
@@ -383,6 +381,15 @@ Describe "Send-NtfyPush" {
                 $Headers.Cache -eq 'no' -and
                 $Headers.Firebase -eq 'no' -and
                 $Headers.UnifiedPush -eq '1'
+            }
+        }
+        It "should work with templates" {
+            Mock 'Invoke-RestMethod' { } -ModuleName PSNtfy
+            $TemplateName = "my-template"
+            Send-NtfyPush -NtfyEndpoint $NtfyTestEndpoint -Topic "ps-test" `
+                -Template $TemplateName
+            Should -Invoke Invoke-RestMethod -ModuleName PSNtfy -ParameterFilter {
+                $Headers.Template -eq $TemplateName
             }
         }
     }

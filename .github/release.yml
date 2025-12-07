@@ -1,0 +1,14 @@
+changelog:
+  categories:
+    - title: 🚀 What's Changed
+      labels:
+        - "*"
+      exclude:
+        labels:
+          - dependencies
+          - version-bump
+          - documentation
+    - title: 🔄 Other Changes
+      labels:
+        - dependencies
+        - documentation

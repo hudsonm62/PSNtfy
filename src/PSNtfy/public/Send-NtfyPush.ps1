@@ -79,6 +79,10 @@
     Ignored if Credential is used for authentication, as Credential uses Basic authentication regardless.
     https://swagger.io/docs/specification/v3_0/authentication/bearer-authentication/
 
+.PARAMETER Template
+    Notification template to use. See the ntfy documentation for more information:
+    https://docs.ntfy.sh/publish/#message-templating
+
 .PARAMETER NoCaching
     Whether to disable caching for this notification.
 
@@ -132,6 +136,14 @@
         NtfyEndpoint = 'https://ntfy.sh'
         Topic = 'test'
         AttachByURL = 'https://example.com/image.png'
+    }
+    Send-NtfyPush @Ntfy
+.EXAMPLE
+    $Ntfy = @{
+        NtfyEndpoint = 'https://ntfy.sh'
+        Topic = 'test'
+        Template = 'my-template'
+        Body = "{}" # JSON string for template
     }
     Send-NtfyPush @Ntfy
 #>
@@ -201,6 +213,9 @@ function Send-NtfyPush {
         [string]$TokenType = "Bearer",
 
         [Parameter()]
+        [string]$Template = $null,
+
+        [Parameter()]
         [switch]$NoCaching = $false,
 
         [Parameter()]
@@ -251,6 +266,7 @@ function Send-NtfyPush {
     Add-ObjectPropSafe -Object $Headers -Key "Icon" -Value $Icon
     Add-ObjectPropSafe -Object $Headers -Key "Email" -Value $Email
     Add-ObjectPropSafe -Object $Headers -Key "Call" -Value $Phone
+    Add-ObjectPropSafe -Object $Headers -Key "Template" -Value $Template
 
     ## file attachment
     Add-ObjectPropSafe -Object $Headers -Key "Filename" -Value $Filename
