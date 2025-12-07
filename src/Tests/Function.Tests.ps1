@@ -4,10 +4,8 @@
 param()
 
 BeforeDiscovery {
-    if(-not (Get-Module PSNtfy -ErrorAction SilentlyContinue)){
-        $ModuleRoot = Resolve-path (Join-Path -Path $PSScriptRoot -ChildPath "../PSNtfy")
-        Import-Module $ModuleRoot -Force -ErrorAction Stop
-    }
+    $ModuleRoot = Resolve-path (Join-Path -Path $PSScriptRoot -ChildPath "../PSNtfy")
+    Import-Module $ModuleRoot -Force -ErrorAction Stop
 }
 
 #region Private
