@@ -1,26 +1,12 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'psake')] param()
 #region Props
 FormatTaskName "-------- {0} --------"
-Task default -Depends 'Lint', 'Test', 'Docs'
+Task default -Depends 'Lint', 'Test'
 
 properties {
     $root = $PSScriptRoot
     $ModuleSrc_Root = Join-Path $root "src"
-    $DevScripts = Join-Path $root "scripts"
-
     $Module_Root = Join-Path $ModuleSrc_Root "PSNtfy"
-
-    # Pester Exclusions
-    $ExcludeFiles = @(
-        '*.Tests.ps1',
-        '*.Mock.ps1',
-        'psakefile.ps1'
-    )
-    $ExcludeFolders = @(
-        'node_modules',
-        'src/Tests'
-    )
-    $ExcludeFoldersPattern = $ExcludeFolders -join '|'
 
     # Pester Config
     [PesterConfiguration]$PesterConfig = New-PesterConfiguration
@@ -30,9 +16,6 @@ properties {
     $PesterConfig.TestResult.OutputPath = Join-Path $root 'testResults.xml'
     $PesterConfig.TestDrive.Enabled = $true
     $PesterConfig.TestRegistry.Enabled = $false
-
-    # MkDocs
-    $DocsServePort = 8000
 }
 #endregion
 
