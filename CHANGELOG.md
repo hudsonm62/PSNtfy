@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 
 ## [Unreleased]
 
+### Added
+
+- `-Template` param to support notification templates in `Send-NtfyPush`.
+
 ### Changed
 
 - Moved header init logic into a helper function in `Save-NtfyAuthentication`.
