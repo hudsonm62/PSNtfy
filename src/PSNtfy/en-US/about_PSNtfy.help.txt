@@ -51,5 +51,7 @@ EXAMPLES
 SEE ALSO
 
     Get-Help 'Send-NtfyPush' -Full
+    Get-Help 'Receive-NtfyPush' -Full
     Get-Help 'ConvertTo-NtfyAction' -Full
     Get-Help 'ConvertFrom-NtfyAction' -Full
+    Get-Help 'Save-NtfyAuthentication' -Full

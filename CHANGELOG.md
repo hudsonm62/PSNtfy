@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog] and this project adheres to [Semantic 
 ### Changed
 
 - Moved header init logic into a helper function in `Save-NtfyAuthentication`.
+- Added missing functions to help topic.
 
 ## [v0.2.3] - 2025-12-06
 
