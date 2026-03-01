@@ -46,14 +46,14 @@ jobs:
 
       - name: 🥨 Upload Coverage Artifact
         if: steps.tests.outcome != 'skipped' && !cancelled()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.CovArtifact }}_${{ runner.os }}-pwsh-${{ steps.setup-meta.outputs.short-sha }}-${{ steps.setup-meta.outputs.timestamp }}
           path: coverage.xml
 
       - name: 🥨 Upload Test Results Artifact
         if: steps.tests.outcome != 'skipped' && !cancelled()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.TestArtifact }}_${{ runner.os }}-pwsh-${{ steps.setup-meta.outputs.short-sha }}-${{ steps.setup-meta.outputs.timestamp }}
           path: testResults.xml
@@ -87,14 +87,14 @@ jobs:
 
       - name: 🥨 Upload Coverage Artifact
         if: steps.tests.outcome != 'skipped' && !cancelled()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.CovArtifact }}_ps5-${{ steps.setup-meta.outputs.short-sha }}-${{ steps.setup-meta.outputs.timestamp }}
           path: coverage.xml
 
       - name: 🥨 Upload Test Results Artifact
         if: steps.tests.outcome != 'skipped' && !cancelled()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.TestArtifact }}_ps5-${{ steps.setup-meta.outputs.short-sha }}-${{ steps.setup-meta.outputs.timestamp }}
           path: testResults.xml
@@ -106,7 +106,7 @@ jobs:
 
     steps:
       - name: 📥 Download Test artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         id: test-artifacts
         with:
           path: test-artifacts
@@ -114,7 +114,7 @@ jobs:
           merge-multiple: false
 
       - name: 📥 Download Coverage artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         id: coverage-artifacts
         with:
           path: coverage-artifacts
